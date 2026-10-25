@@ -169,7 +169,9 @@
       "Begin": "Commencer",
       "Remove": "Retirer cette étape",
       "Skip": "Passer cette étape",
-      "Reuses": "réutilise"
+      "Reuses": "réutilise",
+      "InvalidNotOpened": "L'IA n'a pas réussi à écrire une formule valable après deux corrections ; rien n'a été ouvert dans l'assistant. Refais l'étape ou précise la règle :",
+      "Warnings": "Attention : l'aperçu signale {count} point(s) à compléter avant de publier."
     }
   }
 }

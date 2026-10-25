@@ -169,7 +169,9 @@
       "Begin": "Start",
       "Remove": "Remove this step",
       "Skip": "Skip this step",
-      "Reuses": "reuses"
+      "Reuses": "reuses",
+      "InvalidNotOpened": "The AI could not write a valid formula after two fixes; nothing was opened in the assistant. Redo the step or make the rule clearer:",
+      "Warnings": "Note: the preview lists {count} item(s) to complete before publishing."
     }
   }
 }

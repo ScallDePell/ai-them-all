@@ -85,14 +85,15 @@ export function renderRulesPanel(element, assistant) {
     if (result.status === "planned") {
       run.last = result;
       await assistant.openPath(result.pathId, result.answers);
-      show(`${esc(result.explanation)} ${esc(t(last ? "Designer.ReviewLast" : "Designer.Review"))}`, "success");
+      const toComplete = result.warnings.length ? ` ${esc(t("Designer.Warnings", { count: result.warnings.length }))}` : "";
+      show(`${esc(result.explanation)} ${esc(t(last ? "Designer.ReviewLast" : "Designer.Review"))}${toComplete}`, result.warnings.length ? "" : "success");
       drawNext(onward);
     } else if (result.status === "question") {
       show(`${esc(t("Designer.Question"))} ${esc(result.question)}`);
       drawNext([button("retry", "fa-rotate", t("Designer.Retry")), ...onward]);
     } else {
-      await assistant.openPath(result.pathId, result.answers);
-      show(`${esc(t("Designer.Invalid"))} ${esc(result.errors.map(e => e.detail ?? e.code).join(" · "))}`, "error");
+      if (result.openable) await assistant.openPath(result.pathId, result.answers);
+      show(`${esc(t(result.openable ? "Designer.Invalid" : "Designer.InvalidNotOpened"))} ${esc(result.errors.map(e => e.detail ?? e.code).join(" · "))}`, "error");
       drawNext([button("retry", "fa-rotate", t("Designer.Retry")), ...onward]);
     }
   }

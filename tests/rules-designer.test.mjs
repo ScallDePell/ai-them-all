@@ -79,3 +79,34 @@ test("existing entries are sent with the steps request, and steps say what they 
   assert.match(prompts[0].prompt, /ne donne jamais d'étape de création/);
   assert.deepEqual(result.steps, [{ pathId: "test", goal: "Test", reuses: ["strength"] }]);
 });
+
+test("a malformed formula goes back to the AI without reaching the assistant", async () => {
+  const bad = '{"answers": {"expression": {"type": "add", "args": [{"type": ""}]}}}';
+  const good = '{"answers": {"expression": {"type": "literal", "value": 1}}}';
+  const { prompts, generate } = scripted([bad, good]);
+  let plans = 0;
+  const result = await fillStep({ description: "x", step: { pathId: "test", goal: "" }, catalog, generate,
+    describePath: async () => ({ questions: [{ id: "expression", kind: "formula" }] }), plan: async () => { plans++; return { valid: true, warnings: [] }; } });
+  assert.equal(plans, 1);
+  assert.equal(result.status, "planned");
+  assert.match(prompts[0].prompt, /"type": "reference"/);
+  assert.match(prompts[1].prompt, /UNKNOWN_OPERATION/);
+});
+
+test("malformed to the end: not openable in the assistant", async () => {
+  const bad = '{"answers": {"expression": {"type": "reference", "reference": {}}}}';
+  const result = await fillStep({ description: "x", step: { pathId: "test", goal: "" }, catalog, generate: scripted([bad, bad, bad]).generate,
+    describePath: async () => ({ questions: [{ id: "expression", kind: "formula" }] }), plan: async () => assert.fail("never planned") });
+  assert.equal(result.status, "invalid");
+  assert.equal(result.openable, false);
+});
+
+test("warnings get one more try, and are kept on the last one", async () => {
+  const answer = '{"answers": {"n": 1}}';
+  let plans = 0;
+  const result = await fillStep({ description: "x", step: { pathId: "test", goal: "" }, catalog, generate: scripted([answer, answer, answer]).generate,
+    describePath: async () => ({ questions: [] }), plan: async () => { plans++; return { valid: true, warnings: [{ code: "INCOMPLETE" }] }; } });
+  assert.equal(plans, 3);
+  assert.equal(result.status, "planned");
+  assert.equal(result.warnings.length, 1);
+});

@@ -3,6 +3,8 @@
    answers; Rule Them'All's plan checks them, and the GM applies each step from the assistant's own preview.
    Pure: the AI call (generate), the path description and the plan are given. */
 
+import { EXPRESSION_GUIDE, checkExpressionAnswers, hasExpressionQuestion } from "./expressions.mjs";
+
 export const MAX_RETRIES = 2;
 
 const SYSTEM = [
@@ -72,6 +74,7 @@ export function buildFillPrompt(description, path, { answerFormats = {}, goal = 
     done.length && `Étapes déjà appliquées et entrées qu'elles ont créées (réutilise leurs id) :\n${JSON.stringify(done)}`,
     `Parcours de cette étape (questions, choix possibles et entrées existantes du Ruleset) :\n${JSON.stringify(path)}`,
     `Format des réponses selon le type de question :\n${JSON.stringify(answerFormats)}`,
+    hasExpressionQuestion(path?.questions) && EXPRESSION_GUIDE,
     "Réutilise les entrées existantes quand elles conviennent. Si une entrée manque et que la question permet create, crée-la avec {\"create\": {...}} plutôt que de poser une question.",
     "Réponds avec l'un de ces objets :",
     '{"answers": {"<id de question>": <réponse>}, "explanation": "<une phrase sur ce que crée cette étape>"}',
@@ -117,7 +120,8 @@ export async function planSteps({ description, catalog, inventory = [], generate
 /**
  * Fills one step and has it planned; a refused plan goes back to the AI with its errors, at most MAX_RETRIES more
  * times. done lists the steps already applied with what they created. Resolves with
- * {status: "planned", pathId, answers, plan, explanation} | {status: "question", question} | {status: "invalid", pathId, answers, errors}.
+ * {status: "planned", pathId, answers, plan, warnings, explanation} | {status: "question", question}
+ * | {status: "invalid", pathId, answers, errors, openable}.
  */
 export async function fillStep({ description, step, done = [], catalog, describePath, plan, generate, maxRetries = MAX_RETRIES, onAttempt = () => {} }) {
   const { pathId, goal } = step;
@@ -132,14 +136,26 @@ export async function fillStep({ description, step, done = [], catalog, describe
       previous = { answers: null, errors: [{ code: "FORMAT", detail: "La réponse n'était pas un objet JSON avec answers." }] };
       continue;
     }
+    // An expression the assistant's form cannot show is sent back before the assistant sees it.
+    const malformed = checkExpressionAnswers(path?.questions, answers);
+    if (malformed.length) {
+      previous = { answers, errors: malformed };
+      continue;
+    }
     let result;
     try {
       result = await plan(pathId, answers);
     } catch (error) {
       result = { valid: false, errors: [{ code: "PLAN", detail: error?.message ?? String(error) }] };
     }
-    if (result?.valid) return { status: "planned", pathId, answers, plan: result, explanation: String(filled.explanation ?? goal) };
-    previous = { answers, errors: result?.errors ?? [] };
+    // What would stay to complete before publishing goes back once more while tries remain.
+    const warnings = result?.warnings ?? [];
+    if (result?.valid && (!warnings.length || attempt === maxRetries)) {
+      return { status: "planned", pathId, answers, plan: result, warnings, explanation: String(filled.explanation ?? goal) };
+    }
+    previous = { answers, errors: result?.valid ? warnings : result?.errors ?? [] };
   }
-  return { status: "invalid", pathId, answers: previous?.answers ?? {}, errors: previous?.errors ?? [] };
+  const answers = previous?.answers ?? {};
+  // Answers the assistant's form cannot show are not opened in it.
+  return { status: "invalid", pathId, answers, errors: previous?.errors ?? [], openable: !checkExpressionAnswers(path?.questions, answers).length };
 }

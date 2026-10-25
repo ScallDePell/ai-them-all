@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+- Concepteur de règles : l'IA reçoit la grammaire exacte des formules et conditions de Rule Them'All (nœuds, références à une définition, résultat du test en cours : `variables.test.margin`, DD…).
+- Une formule mal formée (opération vide ou inconnue, référence sans cible) est renvoyée à l'IA avant d'atteindre l'assistant, et n'est jamais ouverte dans son formulaire (elle le faisait planter à l'application).
+- Les points « à compléter avant de publier » de l'aperçu repartent une fois vers l'IA ; s'il en reste, le panneau le signale.
+
 ## 0.2.2
 
 - Concepteur de règles : l'IA reçoit l'inventaire des entrées existantes du Ruleset (identifiants et noms, lus dans les parcours de l'assistant) et réutilise ce qui existe au lieu de proposer de le recréer ; chaque étape indique ce qu'elle réutilise.
