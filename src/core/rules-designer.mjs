@@ -15,10 +15,19 @@ const SYSTEM = [
   "Ne demande jamais un identifiant ou un nom technique au MJ : choisis-le toi-même (minuscules, chiffres, tirets) et réutilise le même dans les étapes suivantes."
 ].join(" ");
 
-/** What the AI needs to choose a path: words only, no questions yet. */
+/** A question in a few words: its id, its kind, and for an entry what it accepts (a fixed number is not a formula). */
+function questionBrief(question) {
+  const accept = question.accept ? [question.accept.collection, question.accept.capability].filter(Boolean).join("/") : "";
+  const choices = question.kind === "choice" ? (question.options ?? []).map(o => o.value).join("|") : "";
+  const fields = question.kind === "list" ? `[${(question.fields ?? []).map(questionBrief).join(", ")}]` : "";
+  return `${question.id}:${question.kind}${accept ? `<${accept}>` : ""}${choices ? `(${choices})` : ""}${fields}`;
+}
+
+/** What the AI needs to choose paths: their words, and what each one's questions accept. */
 export function catalogSummary(catalog) {
   return (catalog?.paths ?? []).map(path => ({
-    id: path.id, group: path.group, title: path.title, summary: path.summary, limits: path.limits, keywords: path.keywords ?? []
+    id: path.id, group: path.group, title: path.title, summary: path.summary, limits: path.limits, keywords: path.keywords ?? [],
+    questions: (path.questions ?? []).map(questionBrief)
   }));
 }
 
@@ -62,6 +71,7 @@ export function buildStepsPrompt(description, summary, inventory = [], previous 
       `Entrées qui existent déjà dans le Ruleset (collection, id, nom) :\n${JSON.stringify(inventory)}`,
       "Découpe cette règle en une liste ordonnée d'étapes, une par parcours. Une règle complexe se construit en combinant plusieurs parcours (briques comme formula, condition, cost, action, et parcours comme test ou attack) : réponds none seulement si aucune combinaison ne convient.",
       "Utilise exactement les id de parcours de la liste (champ id), jamais leur titre.",
+      "Chaque parcours liste ses questions (id:type<ce qu'une entrée accepte>) : choisis un parcours seulement si ses questions peuvent exprimer cette partie de la règle (par exemple, une question number n'accepte qu'un nombre fixe, pas un calcul ; une entrée <definitions/pool> est une réserve de l'acteur, pas un champ d'un Contenu).",
       "Vérifie d'abord dans les entrées existantes : une entrée qui existe déjà (même sous un autre nom proche, ou un id équivalent) se réutilise et ne donne jamais d'étape de création.",
       "Si la règle a besoin d'une entrée absente de cette liste (une définition comme une taille ou une hauteur, un paramètre, une formule…), ajoute une étape qui la crée avant l'étape qui l'utilise : ne pose pas de question pour ça.",
       "Pour chaque étape, indique les entrées existantes qu'elle réutilise.",

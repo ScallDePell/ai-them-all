@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6
+
+- Concepteur de règles : pour découper la règle, l'IA voit ce que chaque parcours accepte (questions, types, entrées acceptées). Elle ne choisit plus un parcours incapable d'exprimer la règle (par exemple « Coût », qui ne dépense qu'une réserve de l'acteur d'une quantité fixe, pour des munitions d'arme dépendant du nombre de séquences).
+
 ## 0.2.5
 
 - Concepteur de règles : quand l'IA pose une question, un champ **Répondre** apparaît dans le panneau ; la réponse est gardée pour toutes les étapes de la règle (plus besoin de réécrire la description).

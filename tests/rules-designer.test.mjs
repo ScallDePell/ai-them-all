@@ -130,3 +130,14 @@ test("the GM's answers go with the next requests, and identifiers are never aske
   assert.match(prompts[0].system, /Ne demande jamais un identifiant/);
   assert.match(prompts[0].prompt, /variables\.input\./);
 });
+
+test("each path is summarized with what its questions accept", async () => {
+  const { catalogSummary } = await import("../src/core/rules-designer.mjs");
+  const [cost] = catalogSummary({ paths: [{ id: "cost", questions: [
+    { id: "resource", kind: "entry", accept: { collection: "definitions", capability: "pool" } },
+    { id: "amount", kind: "number" },
+    { id: "writes", kind: "choice", options: [{ value: "definition" }, { value: "contentField" }] },
+    { id: "rows", kind: "list", fields: [{ id: "f", kind: "formula" }] }
+  ] }] });
+  assert.deepEqual(cost.questions, ["resource:entry<definitions/pool>", "amount:number", "writes:choice(definition|contentField)", "rows:list[f:formula]"]);
+});
