@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../core/constants.mjs";
 import { describeServiceStatus } from "../core/provider-status.mjs";
+import { CONTENT_PATH_ID, fillContentStep, listContentTemplates, withContentPath } from "../core/content-step.mjs";
 import { catalogSummary, collectInventory, fillStep, listContentFields, planSteps } from "../core/rules-designer.mjs";
 import { generateText } from "../core/generation.mjs";
 import { resolveServices } from "../core/settings-schema.mjs";
@@ -42,7 +43,7 @@ export function renderRulesPanel(element, assistant) {
   const stepsList = element.querySelector("[data-ata-steps]");
   const status = element.querySelector("[data-ata-status]");
   const next = element.querySelector("[data-ata-next]");
-  const run = { description: "", steps: [], index: -1, done: [], last: null, busy: false, service: null, catalog: null, inventory: [], contentFields: [], clarifications: [], pending: null };
+  const run = { description: "", steps: [], index: -1, done: [], last: null, busy: false, service: null, catalog: null, inventory: [], contentFields: [], contentTemplates: [], clarifications: [], pending: null };
 
   const show = (html, kind = "") => { status.innerHTML = html ? `<p class="ata-status ${kind}">${html}</p>` : ""; };
   const busy = text => show(`<i class="fa-solid fa-spinner fa-spin"></i> ${esc(text)}`);
@@ -82,6 +83,7 @@ export function renderRulesPanel(element, assistant) {
     drawSteps();
     drawNext([]);
     const step = run.steps[index];
+    if (step.pathId === CONTENT_PATH_ID) return prepareContent(index);
     const result = await fillStep({
       description: run.description, step, done: run.done, clarifications: run.clarifications, contentFields: run.contentFields, catalog: run.catalog, generate,
       describePath: (pathId, answers) => assistant.describePath(pathId, answers),
@@ -105,10 +107,56 @@ export function renderRulesPanel(element, assistant) {
     }
   }
 
-  // The Content Types' fields, read through Rule Them'All's stable configurator API; none when it cannot say.
-  function readContentFields() {
-    try { return listContentFields(game.ruleThemAll?.configurator?.getRuleset?.(assistant.versionId)); } catch { return []; }
+  // The Ruleset as it is now, read through Rule Them'All's stable configurator API; null when it cannot say.
+  function readRuleset() {
+    try { return game.ruleThemAll?.configurator?.getRuleset?.(assistant.versionId) ?? null; } catch { return null; }
   }
+
+  const onwardButtons = index => index === run.steps.length - 1 ? [] : [button("skip", "fa-ban", t("Designer.Skip")), button("next", "fa-forward-step", t("Designer.Next"))];
+  const shown = value => value === undefined ? "—" : typeof value === "object" ? JSON.stringify(value) : String(value);
+
+  // AI Them'All's own step: the change is shown here and written by the panel's button, not by the assistant.
+  async function prepareContent(index) {
+    const step = run.steps[index];
+    const onward = onwardButtons(index);
+    if (!game.ruleThemAll?.configurator?.updateContentTemplate) {
+      show(esc(t("Designer.ContentUnavailable")), "error");
+      return drawNext(onward);
+    }
+    const result = await fillContentStep({
+      description: run.description, step, done: run.done, clarifications: run.clarifications, readRuleset, generate,
+      onAttempt: attempt => busy(t(attempt ? "Designer.Retrying" : "Designer.Filling", { attempt, n: index + 1, total: run.steps.length }))
+    });
+    if (result.status === "question") return ask(result.question, "step", [button("retry", "fa-rotate", t("Designer.Retry")), ...onward]);
+    if (result.status !== "planned") {
+      show(`${esc(t("Designer.ContentInvalid"))} ${esc(result.errors.map(e => e.detail ?? e.code).join(" · "))}`, "error");
+      return drawNext([button("retry", "fa-rotate", t("Designer.Retry")), ...onward]);
+    }
+    run.last = result;
+    const { change } = result;
+    const actionName = id => (readRuleset()?.actions ?? []).find(a => a.id === id)?.nameKey || id;
+    const lines = [...change.grants.map(id => t("Designer.ContentGrant", { action: actionName(id) })),
+      ...change.fields.map(f => t("Designer.ContentField", { field: f.id, from: shown(f.from), to: shown(f.to) }))];
+    status.innerHTML = `<p class="ata-status">${esc(result.explanation)} ${esc(t("Designer.ContentReview", { name: change.name }))}</p>
+      <ul class="ata-content-change">${lines.map(line => `<li>${esc(line)}</li>`).join("")}</ul>`;
+    drawNext([button("applyContent", "fa-check", t("Designer.ContentApply")), button("retry", "fa-rotate", t("Designer.Retry")), ...onward]);
+  }
+
+  async function applyContent() {
+    const { change } = run.last ?? {};
+    if (!change || assistant.state()?.readOnly) return;
+    try {
+      await game.ruleThemAll.configurator.updateContentTemplate(assistant.versionId, change.templateId, change.patch);
+    } catch (error) {
+      return show(`${esc(t("Designer.ContentFailed"))} ${esc(errorMessage(error))}`, "error");
+    }
+    run.last.applied = true;
+    show(esc(t("Designer.ContentApplied", { name: change.name })), "success");
+    drawNext(onwardButtons(run.index));
+  }
+
+  // The Content Types' fields; none when the Ruleset cannot be read.
+  const readContentFields = () => listContentFields(readRuleset());
 
   async function start() {
     const description = textarea.value.trim();
@@ -116,12 +164,13 @@ export function renderRulesPanel(element, assistant) {
     run.service = resolveServices(readSettings()).text;
     const ready = describeServiceStatus(run.service, "text");
     if (!ready.ready) return show(ready.issues.map(key => esc(game.i18n.localize(key))).join(" "), "error");
-    run.catalog = await assistant.catalog();
+    run.catalog = withContentPath(await assistant.catalog());
     if (!await consent(description, catalogSummary(run.catalog))) return;
     Object.assign(run, { description, steps: [], index: -1, done: [], last: null, clarifications: [], pending: null });
     busy(t("Designer.Inventory"));
     run.inventory = await collectInventory(run.catalog, (pathId, answers) => assistant.describePath(pathId, answers));
     run.contentFields = readContentFields();
+    run.contentTemplates = listContentTemplates(readRuleset());
     await split();
   }
 
@@ -131,7 +180,7 @@ export function renderRulesPanel(element, assistant) {
     drawSteps();
     drawNext([]);
     busy(t("Designer.Choosing", { count: run.inventory.length }));
-    const result = await planSteps({ description: run.description, catalog: run.catalog, inventory: run.inventory, contentFields: run.contentFields, clarifications: run.clarifications, generate });
+    const result = await planSteps({ description: run.description, catalog: run.catalog, inventory: run.inventory, contentFields: run.contentFields, contentTemplates: run.contentTemplates, clarifications: run.clarifications, generate });
     if (result.status === "question") return ask(result.question, "steps");
     if (result.status === "noPath") return show(`${esc(t("Designer.NoPath"))} ${esc(result.reason)}`, "error");
     if (result.status === "unusable") return show(esc(t("Designer.Unusable", { reason: result.reason })), "error");
@@ -144,6 +193,7 @@ export function renderRulesPanel(element, assistant) {
   async function advance(skipped) {
     const step = run.steps[run.index];
     if (skipped) step.skipped = true;
+    else if (step.pathId === CONTENT_PATH_ID) run.done.push({ pathId: step.pathId, goal: step.goal, created: [], configured: run.last?.applied ? [{ collection: "contentTemplates", id: run.last.change.templateId }] : [] });
     else run.done.push({ pathId: step.pathId, goal: step.goal, created: run.last?.plan?.created ?? [] });
     await prepare(run.index + 1);
   }
@@ -172,6 +222,7 @@ export function renderRulesPanel(element, assistant) {
         }
       }
       else if (action === "retry") await prepare(run.index);
+      else if (action === "applyContent") await applyContent();
       else if (action === "next") await advance(false);
       else if (action === "skip") await advance(true);
     } catch (error) {

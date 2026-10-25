@@ -6,12 +6,15 @@
 import { EXPRESSION_GUIDE, checkExpressionAnswers, hasExpressionQuestion } from "./expressions.mjs";
 
 export const MAX_RETRIES = 2;
+// The id of AI Them'All's own step (content-step.mjs), named here to avoid an import cycle.
+const CONTENT_PATH_ID = "ai-them-all.configureContent";
 
 const SYSTEM = [
   "Tu aides un MJ à saisir une règle de jeu de rôle dans l'assistant de Rule Them'All, un module Foundry VTT.",
   "L'assistant propose des parcours : chacun pose des questions et crée des entrées du Ruleset à partir des réponses.",
   "Tu ne réponds qu'en JSON, sans texte autour.",
   "N'invente aucune valeur de règle absente du texte du MJ : si une valeur obligatoire manque, demande-la.",
+  "Le MJ peut mal orthographier un nom : rapproche-le de l'entrée existante au nom le plus proche au lieu d'en créer une.",
   "Ne demande jamais un identifiant ou un nom technique au MJ : choisis-le toi-même (minuscules, chiffres, tirets) et réutilise le même dans les étapes suivantes."
 ].join(" ");
 
@@ -73,10 +76,10 @@ export function listContentFields(ruleset) {
 const FIELDS_NOTE = "Champs des Contenus (objets, armes…) : une formule ou une condition les lit avec un nœud contentField (champ du Contenu depuis lequel l'action est utilisée), un effet les modifie avec writes contentField. Ce ne sont pas des définitions ni des réserves de l'acteur : ils ne se créent jamais par une étape";
 const fieldsBlock = contentFields => contentFields?.length ? `${FIELDS_NOTE} (id, nom, type, Types de Contenu) :\n${JSON.stringify(contentFields)}` : "";
 
-const clarified = clarifications => clarifications?.length
+export const clarified = clarifications => clarifications?.length
   ? `Précisions du MJ, en réponse à tes questions :\n${clarifications.map(c => `- ${c.question} → ${c.answer}`).join("\n")}` : "";
 
-export function buildStepsPrompt(description, summary, inventory = [], previous = null, clarifications = [], contentFields = []) {
+export function buildStepsPrompt(description, summary, inventory = [], previous = null, clarifications = [], contentFields = [], contentTemplates = []) {
   const retry = previous ? [`Ta réponse précédente n'a pas pu être utilisée : ${previous}. Réponds de nouveau avec un seul objet JSON valide.`] : [];
   return {
     system: SYSTEM,
@@ -86,6 +89,7 @@ export function buildStepsPrompt(description, summary, inventory = [], previous 
       `Parcours disponibles :\n${JSON.stringify(summary)}`,
       `Entrées qui existent déjà dans le Ruleset (collection, id, nom) :\n${JSON.stringify(inventory)}`,
       ...[fieldsBlock(contentFields)].filter(Boolean),
+      ...(contentTemplates.length ? [`Modèles de Contenu existants (id, nom, type) ; le parcours ${CONTENT_PATH_ID} en configure un (lui donne une action créée par une étape précédente, règle ses champs) :\n${JSON.stringify(contentTemplates.map(({ id, name, contentType }) => ({ id, name, contentType })))}`] : []),
       "Découpe cette règle en une liste ordonnée d'étapes, une par parcours. Une règle complexe se construit en combinant plusieurs parcours (briques comme formula, condition, cost, action, et parcours comme test ou attack) : réponds none seulement si aucune combinaison ne convient.",
       "Utilise exactement les id de parcours de la liste (champ id), jamais leur titre.",
       "Chaque parcours liste ses questions (id:type<ce qu'une entrée accepte>) : choisis un parcours seulement si ses questions peuvent exprimer cette partie de la règle (par exemple, une question number n'accepte qu'un nombre fixe, pas un calcul ; une entrée <definitions/pool> est une réserve de l'acteur, pas un champ d'un Contenu).",
@@ -143,12 +147,12 @@ export function parseJsonAnswer(text) {
  * {status: "steps", steps: [{pathId, goal, reuses}], explanation} | {status: "question", question} | {status: "noPath", reason}
  * | {status: "unusable", reason} when the AI's answer could not be read, even after one more try.
  */
-export async function planSteps({ description, catalog, inventory = [], contentFields = [], clarifications = [], generate, maxRetries = 1 }) {
+export async function planSteps({ description, catalog, inventory = [], contentFields = [], contentTemplates = [], clarifications = [], generate, maxRetries = 1 }) {
   const summary = catalogSummary(catalog);
   const known = new Set(summary.map(path => path.id));
   let previous = null, reason = "";
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory, previous, clarifications, contentFields)));
+    const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory, previous, clarifications, contentFields, contentTemplates)));
     if (answer?.question) return { status: "question", question: String(answer.question) };
     if (answer?.none !== undefined && !answer?.steps) return { status: "noPath", reason: String(answer.none || "") };
     const proposed = Array.isArray(answer?.steps) ? answer.steps : null;

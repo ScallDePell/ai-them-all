@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.8
+
+- Concepteur de règles : nouvelle étape **Configurer un Contenu existant**. L'IA peut donner une action à un Modèle de Contenu qui existe déjà (ex. « Tir en rafale » au « Fusil d'assaut ») et régler les valeurs de ses champs. Le panneau montre les changements ; rien n'est écrit avant le clic sur **Appliquer au Contenu** (API stable `updateContentTemplate` de Rule Them'All).
+- Les noms mal orthographiés sont rapprochés du Modèle le plus proche (« Fusil d'assault » → « Fusil d'assaut ») ; deux Modèles aussi proches l'un que l'autre ne sont jamais devinés.
+- L'IA voit la liste des Modèles de Contenu existants pour découper la règle.
+
 ## 0.2.7
 
 - Concepteur de règles : l'IA reçoit la liste des champs des Types de Contenu (ex. Munitions d'une Arme). Elle les lit dans une formule ou une condition avec un nœud `contentField` et les modifie avec un effet « champ du Contenu », au lieu de demander une définition de réserve qui n'existe pas.

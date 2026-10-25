@@ -158,7 +158,7 @@
       "ConsentIntro": "To propose paths, AI Them'All sends to the configured AI service:",
       "ConsentText": "your text:",
       "ConsentCatalog": "the list of the assistant's {count} paths and their questions;",
-      "ConsentEntries": "the names and ids of the Ruleset's existing entries (to reuse rather than recreate).",
+      "ConsentEntries": "the names and ids of the Ruleset's existing entries, and the field values of its Content Templates (to reuse rather than recreate).",
       "ConsentNever": "Nothing else leaves the world: never the characters' sheets. This is asked once in this browser.",
       "ReviewLast": "Check the preview and click Apply: this is the last step.",
       "Next": "Next step",
@@ -174,7 +174,15 @@
       "Warnings": "Note: the preview lists {count} item(s) to complete before publishing.",
       "Unusable": "The AI's answer could not be used, even after a second try ({reason}). Propose again; if it happens again, try a more capable model.",
       "Answer": "Answer",
-      "AnswerPlaceholder": "Your answer (kept for every step of this rule)"
+      "AnswerPlaceholder": "Your answer (kept for every step of this rule)",
+      "ContentReview": "Proposed changes to \"{name}\" (nothing is written before Apply):",
+      "ContentGrant": "gives the action {action}",
+      "ContentField": "{field}: {from} → {to}",
+      "ContentApply": "Apply to the Content",
+      "ContentApplied": "\"{name}\" is configured.",
+      "ContentFailed": "Rule Them'All refused the change:",
+      "ContentInvalid": "The AI could not configure this Content:",
+      "ContentUnavailable": "Rule Them'All does not let this panel read or change Contents (no configurator API)."
     }
   }
 }
