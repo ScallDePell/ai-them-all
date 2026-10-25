@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../core/constants.mjs";
 import { describeServiceStatus } from "../core/provider-status.mjs";
-import { catalogSummary, fillStep, planSteps } from "../core/rules-designer.mjs";
+import { catalogSummary, collectInventory, fillStep, planSteps } from "../core/rules-designer.mjs";
 import { generateText } from "../core/generation.mjs";
 import { resolveServices } from "../core/settings-schema.mjs";
 import { esc, errorMessage, t } from "./html.mjs";
@@ -39,7 +39,6 @@ export function renderRulesPanel(element, assistant) {
     <div data-ata-status role="status"></div>
     <div class="ata-designer-actions" data-ata-next></div>`;
   const textarea = element.querySelector("[data-ata-rule]");
-  const propose = element.querySelector("[data-ata=propose]");
   const stepsList = element.querySelector("[data-ata-steps]");
   const status = element.querySelector("[data-ata-status]");
   const next = element.querySelector("[data-ata-next]");
@@ -48,10 +47,14 @@ export function renderRulesPanel(element, assistant) {
   const show = (html, kind = "") => { status.innerHTML = html ? `<p class="ata-status ${kind}">${html}</p>` : ""; };
   const busy = text => show(`<i class="fa-solid fa-spinner fa-spin"></i> ${esc(text)}`);
   const button = (action, icon, label) => `<button type="button" data-ata="${action}"><i class="fa-solid ${icon}"></i> ${esc(label)}</button>`;
+  // Before the first step, the GM reviews the steps and may remove the ones not wanted.
   const drawSteps = () => {
+    const reviewing = run.index < 0;
     stepsList.innerHTML = run.steps.map((step, i) => {
-      const mark = i < run.index ? "fa-check" : i === run.index ? "fa-arrow-right" : "fa-circle";
-      return `<li class="${i === run.index ? "current" : ""}"><i class="fa-solid ${mark}"></i> ${esc(step.goal || step.pathId)}</li>`;
+      const mark = step.skipped ? "fa-ban" : i < run.index ? "fa-check" : i === run.index ? "fa-arrow-right" : "fa-circle";
+      const reuses = step.reuses?.length ? `<span class="hint"> · ${esc(t("Designer.Reuses"))} ${esc(step.reuses.join(", "))}</span>` : "";
+      const remove = reviewing ? ` <button type="button" class="ata-icon" data-ata="remove" data-index="${i}" title="${esc(t("Designer.Remove"))}"><i class="fa-solid fa-xmark"></i></button>` : "";
+      return `<li class="${i === run.index ? "current" : ""}${step.skipped ? " skipped" : ""}"><i class="fa-solid ${mark}"></i> <span>${esc(step.goal || step.pathId)}${reuses}</span>${remove}</li>`;
     }).join("");
   };
   const drawNext = buttons => { next.innerHTML = buttons.join(""); };
@@ -78,7 +81,7 @@ export function renderRulesPanel(element, assistant) {
       onAttempt: attempt => busy(t(attempt ? "Designer.Retrying" : "Designer.Filling", { attempt, n: index + 1, total: run.steps.length }))
     });
     const last = index === run.steps.length - 1;
-    const onward = last ? [] : [button("next", "fa-forward-step", t("Designer.Next"))];
+    const onward = last ? [] : [button("skip", "fa-ban", t("Designer.Skip")), button("next", "fa-forward-step", t("Designer.Next"))];
     if (result.status === "planned") {
       run.last = result;
       await assistant.openPath(result.pathId, result.answers);
@@ -105,12 +108,23 @@ export function renderRulesPanel(element, assistant) {
     Object.assign(run, { description, steps: [], index: -1, done: [], last: null });
     drawSteps();
     drawNext([]);
-    busy(t("Designer.Choosing"));
-    const result = await planSteps({ description, catalog: run.catalog, generate });
+    busy(t("Designer.Inventory"));
+    const inventory = await collectInventory(run.catalog, (pathId, answers) => assistant.describePath(pathId, answers));
+    busy(t("Designer.Choosing", { count: inventory.length }));
+    const result = await planSteps({ description, catalog: run.catalog, inventory, generate });
     if (result.status === "question") return show(`${esc(t("Designer.Question"))} ${esc(result.question)} ${esc(t("Designer.AnswerInText"))}`);
     if (result.status === "noPath") return show(`${esc(t("Designer.NoPath"))} ${esc(result.reason)}`, "error");
     run.steps = result.steps;
-    await prepare(0);
+    drawSteps();
+    show(`${esc(result.explanation)} ${esc(t("Designer.ReviewSteps"))}`);
+    drawNext([button("begin", "fa-play", t("Designer.Begin"))]);
+  }
+
+  async function advance(skipped) {
+    const step = run.steps[run.index];
+    if (skipped) step.skipped = true;
+    else run.done.push({ pathId: step.pathId, goal: step.goal, created: run.last?.plan?.created ?? [] });
+    await prepare(run.index + 1);
   }
 
   element.addEventListener("click", async event => {
@@ -120,12 +134,15 @@ export function renderRulesPanel(element, assistant) {
     sync(assistant.state());
     try {
       if (action === "propose") await start();
-      else if (action === "retry") await prepare(run.index);
-      else if (action === "next") {
-        const step = run.steps[run.index];
-        run.done.push({ pathId: step.pathId, goal: step.goal, created: run.last?.plan?.created ?? [] });
-        await prepare(run.index + 1);
+      else if (action === "remove") {
+        run.steps.splice(Number(event.target.closest("button").dataset.index), 1);
+        drawSteps();
+        if (!run.steps.length) { drawNext([]); show(""); }
       }
+      else if (action === "begin") await prepare(0);
+      else if (action === "retry") await prepare(run.index);
+      else if (action === "next") await advance(false);
+      else if (action === "skip") await advance(true);
     } catch (error) {
       show(esc(errorMessage(error)), "error");
     }

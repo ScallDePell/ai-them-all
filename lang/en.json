@@ -145,7 +145,7 @@
       "Placeholder": "E.g.: Burst of 1, 2 or 3 sequences of 3 bullets, +2 if the sequence fits in the attacks per round…",
       "Propose": "Propose",
       "Empty": "Describe your rule first.",
-      "Choosing": "Splitting the rule into steps…",
+      "Choosing": "Splitting the rule into steps ({count} existing entries considered)…",
       "Filling": "Step {n}/{total}: filling the answers…",
       "Retrying": "Step {n}/{total}: fixing after the assistant refused (attempt {attempt})…",
       "Review": "Check the preview, click Apply, then Next step.",
@@ -158,12 +158,18 @@
       "ConsentIntro": "To propose paths, AI Them'All sends to the configured AI service:",
       "ConsentText": "your text:",
       "ConsentCatalog": "the list of the assistant's {count} paths and their questions;",
-      "ConsentEntries": "the names and ids of the Ruleset entries the chosen path may reuse.",
+      "ConsentEntries": "the names and ids of the Ruleset's existing entries (to reuse rather than recreate).",
       "ConsentNever": "Nothing else leaves the world: never the characters' sheets. This is asked once in this browser.",
       "ReviewLast": "Check the preview and click Apply: this is the last step.",
       "Next": "Next step",
       "Retry": "Redo this step",
-      "AnswerInText": "Add the answer to your description, then Propose."
+      "AnswerInText": "Add the answer to your description, then Propose.",
+      "Inventory": "Reading the Ruleset's existing entries…",
+      "ReviewSteps": "Review the steps: remove with × those that create an entry you already have, then Start.",
+      "Begin": "Start",
+      "Remove": "Remove this step",
+      "Skip": "Skip this step",
+      "Reuses": "reuses"
     }
   }
 }

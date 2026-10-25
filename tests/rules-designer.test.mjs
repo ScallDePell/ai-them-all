@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fillStep, parseJsonAnswer, planSteps } from "../src/core/rules-designer.mjs";
+import { collectInventory, fillStep, parseJsonAnswer, planSteps } from "../src/core/rules-designer.mjs";
 
 const catalog = {
   answerFormats: { integer: "A whole number." },
@@ -55,4 +55,27 @@ test("a refused plan goes back with its errors, two retries at most", async () =
   assert.equal(plans, 3);
   assert.equal(result.status, "invalid");
   assert.match(prompts[2].prompt, /TYPE/);
+});
+
+test("the inventory lists the entries the paths may reuse, once each, list fields included", async () => {
+  const described = {
+    value: { questions: [{ kind: "entry", accept: { collection: "definitions" }, choices: [{ id: "strength", nameKey: "Force" }] }] },
+    test: { questions: [
+      { kind: "entries", accept: { collection: "definitions" }, choices: [{ id: "strength", nameKey: "Force" }] },
+      { kind: "list", fields: [{ kind: "entry", accept: { collection: "conditions" }, choices: [{ id: "success" }] }] }
+    ] }
+  };
+  const inventory = await collectInventory(catalog, async id => described[id]);
+  assert.deepEqual(inventory, [
+    { collection: "definitions", id: "strength", name: "Force" },
+    { collection: "conditions", id: "success", name: "success" }
+  ]);
+});
+
+test("existing entries are sent with the steps request, and steps say what they reuse", async () => {
+  const { prompts, generate } = scripted(['{"steps": [{"pathId": "test", "goal": "Test", "reuses": ["strength"]}]}']);
+  const result = await planSteps({ description: "Saut", catalog, inventory: [{ collection: "definitions", id: "strength", name: "Force" }], generate });
+  assert.match(prompts[0].prompt, /"id":"strength"/);
+  assert.match(prompts[0].prompt, /ne donne jamais d'étape de création/);
+  assert.deepEqual(result.steps, [{ pathId: "test", goal: "Test", reuses: ["strength"] }]);
 });

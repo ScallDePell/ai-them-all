@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2
+
+- Concepteur de règles : l'IA reçoit l'inventaire des entrées existantes du Ruleset (identifiants et noms, lus dans les parcours de l'assistant) et réutilise ce qui existe au lieu de proposer de le recréer ; chaque étape indique ce qu'elle réutilise.
+- Les étapes s'affichent d'abord pour relecture : le MJ retire avec × celles qu'il ne veut pas, puis clique **Commencer**. En cours de route, **Passer cette étape** saute une étape sans l'appliquer.
+
 ## 0.2.1
 
 - Concepteur de règles en plusieurs étapes : l'IA découpe la règle en parcours ordonnés. Une entrée dont la règle a besoin et qui manque au Ruleset (par exemple une définition Hauteur) devient une étape à créer d'abord, au lieu d'une question.

@@ -9,3 +9,5 @@
 .ata-steps { margin: 0.25rem 0; padding-left: 0; list-style: none; }
 .ata-steps li { display: flex; gap: 0.4rem; align-items: baseline; }
 .ata-steps li.current { font-weight: bold; }
+.ata-steps li.skipped { opacity: 0.6; text-decoration: line-through; }
+.ata-steps .ata-icon { flex: 0 0 auto; width: auto; margin-left: auto; padding: 0 0.4rem; line-height: 1.4; }

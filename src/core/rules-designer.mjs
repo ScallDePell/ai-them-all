@@ -19,17 +19,46 @@ export function catalogSummary(catalog) {
   }));
 }
 
-export function buildStepsPrompt(description, summary) {
+export const INVENTORY_LIMIT = 400;
+
+/**
+ * The entries the Ruleset already has, as the assistant offers them in its questions: {collection, id, name}.
+ * Read from each path's description, so only what a path may reuse; names are the Ruleset's own names or keys.
+ */
+export async function collectInventory(catalog, describePath) {
+  const found = new Map();
+  const walk = questions => {
+    for (const question of questions ?? []) {
+      if ((question.kind === "entry" || question.kind === "entries") && question.accept?.collection) {
+        for (const choice of question.choices ?? []) {
+          const key = `${question.accept.collection}:${choice.id}`;
+          if (!found.has(key)) found.set(key, { collection: question.accept.collection, id: choice.id, name: choice.nameKey ?? choice.id });
+        }
+      }
+      if (question.kind === "list") walk(question.fields);
+    }
+  };
+  for (const path of catalog?.paths ?? []) {
+    try { walk((await describePath(path.id, {}))?.questions); } catch { /* a path that cannot be described adds nothing */ }
+    if (found.size >= INVENTORY_LIMIT) break;
+  }
+  return [...found.values()].slice(0, INVENTORY_LIMIT);
+}
+
+export function buildStepsPrompt(description, summary, inventory = []) {
   return {
     system: SYSTEM,
     prompt: [
       `Règle décrite par le MJ :\n${description.trim()}`,
       `Parcours disponibles :\n${JSON.stringify(summary)}`,
+      `Entrées qui existent déjà dans le Ruleset (collection, id, nom) :\n${JSON.stringify(inventory)}`,
       "Découpe cette règle en une liste ordonnée d'étapes, une par parcours.",
-      "Si la règle a besoin d'une entrée qui n'existe peut-être pas encore (une définition comme une taille ou une hauteur, un paramètre, une formule…), ajoute une étape qui la crée avant l'étape qui l'utilise : ne pose pas de question pour ça.",
+      "Vérifie d'abord dans les entrées existantes : une entrée qui existe déjà (même sous un autre nom proche, ou un id équivalent) se réutilise et ne donne jamais d'étape de création.",
+      "Si la règle a besoin d'une entrée absente de cette liste (une définition comme une taille ou une hauteur, un paramètre, une formule…), ajoute une étape qui la crée avant l'étape qui l'utilise : ne pose pas de question pour ça.",
+      "Pour chaque étape, indique les entrées existantes qu'elle réutilise.",
       "Ne pose une question que si une valeur de la règle elle-même manque dans le texte du MJ (un nombre, un dé, un seuil).",
       "Réponds avec l'un de ces objets :",
-      '{"steps": [{"pathId": "<id du parcours>", "goal": "<ce que crée cette étape, en une phrase>"}], "explanation": "<une phrase>"}',
+      '{"steps": [{"pathId": "<id du parcours>", "goal": "<ce que crée cette étape, en une phrase>", "reuses": ["<id d\'entrée existante>"]}], "explanation": "<une phrase>"}',
       '{"none": "<pourquoi aucun parcours ne convient, et ce qu\'il faudrait ajouter à Rule Them\'All>"}',
       '{"question": "<la valeur de règle à demander au MJ>"}'
     ].join("\n\n")
@@ -73,14 +102,14 @@ export function parseJsonAnswer(text) {
  * Splits the rule into ordered steps, one assistant path each. Resolves with
  * {status: "steps", steps: [{pathId, goal}], explanation} | {status: "question", question} | {status: "noPath", reason}.
  */
-export async function planSteps({ description, catalog, generate }) {
+export async function planSteps({ description, catalog, inventory = [], generate }) {
   const summary = catalogSummary(catalog);
-  const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary)));
+  const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory)));
   if (answer?.question) return { status: "question", question: String(answer.question) };
   const known = new Set(summary.map(path => path.id));
   const steps = (Array.isArray(answer?.steps) ? answer.steps : [])
     .filter(step => known.has(step?.pathId))
-    .map(step => ({ pathId: step.pathId, goal: String(step.goal ?? "") }));
+    .map(step => ({ pathId: step.pathId, goal: String(step.goal ?? ""), reuses: Array.isArray(step.reuses) ? step.reuses.map(String) : [] }));
   if (!steps.length) return { status: "noPath", reason: String(answer?.none ?? "") };
   return { status: "steps", steps, explanation: String(answer.explanation ?? "") };
 }

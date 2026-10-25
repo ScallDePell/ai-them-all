@@ -145,7 +145,7 @@
       "Placeholder": "Ex. : Rafale de 1, 2 ou 3 séquences de 3 balles, +2 si la séquence tient dans les attaques par round…",
       "Propose": "Proposer",
       "Empty": "Décris d'abord ta règle.",
-      "Choosing": "Découpage de la règle en étapes…",
+      "Choosing": "Découpage de la règle en étapes ({count} entrées existantes prises en compte)…",
       "Filling": "Étape {n}/{total} : remplissage des réponses…",
       "Retrying": "Étape {n}/{total} : correction après refus de l'assistant (essai {attempt})…",
       "Review": "Vérifie l'aperçu, clique Appliquer, puis Étape suivante.",
@@ -158,12 +158,18 @@
       "ConsentIntro": "Pour proposer des parcours, AI Them'All envoie au service d'IA configuré :",
       "ConsentText": "ton texte :",
       "ConsentCatalog": "la liste des {count} parcours de l'assistant et leurs questions ;",
-      "ConsentEntries": "les noms et identifiants des entrées du Ruleset que le parcours choisi peut réutiliser.",
+      "ConsentEntries": "les noms et identifiants des entrées existantes du Ruleset (pour réutiliser plutôt que recréer).",
       "ConsentNever": "Rien d'autre ne sort du monde : jamais les fiches des personnages. Cette question n'est posée qu'une fois dans ce navigateur.",
       "ReviewLast": "Vérifie l'aperçu et clique Appliquer : c'est la dernière étape.",
       "Next": "Étape suivante",
       "Retry": "Refaire cette étape",
-      "AnswerInText": "Ajoute la réponse à ta description, puis Proposer."
+      "AnswerInText": "Ajoute la réponse à ta description, puis Proposer.",
+      "Inventory": "Lecture des entrées existantes du Ruleset…",
+      "ReviewSteps": "Relis les étapes : retire avec × celles qui créent une entrée que tu as déjà, puis Commencer.",
+      "Begin": "Commencer",
+      "Remove": "Retirer cette étape",
+      "Skip": "Passer cette étape",
+      "Reuses": "réutilise"
     }
   }
 }
