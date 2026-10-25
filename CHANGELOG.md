@@ -1,6 +1,6 @@
 # Changelog
 
-## Non publié
+## 0.2.0
 
 - **Intégration à Rule Them'All** (API d'intégration 1.x, négociée sur les capacités) :
   - Systèmes → **AI Them'All**, juste après Feuilles : cards de génération du Ruleset (Créer, ouvrir, dupliquer, activer, supprimer, réordonner), stockées par AI Them'All ; une card dont le champ cible a disparu est signalée.
