@@ -1,0 +1,37 @@
+{
+  "AITHEMALL": {
+    "Settings": {
+      "provider": {
+        "Name": "Fournisseur d'IA",
+        "Hint": "Service utilisé pour la génération. « Aucun » désactive la génération sans gêner le reste du monde.",
+        "Choices": {
+          "none": "Aucun",
+          "anthropic": "Claude (API Anthropic)",
+          "openai": "API compatible OpenAI",
+          "ollama": "Ollama (modèle local)"
+        }
+      },
+      "endpoint": {
+        "Name": "Adresse du service",
+        "Hint": "Laisser vide pour l'adresse par défaut du fournisseur."
+      },
+      "textModel": {
+        "Name": "Modèle texte",
+        "Hint": "Identifiant du modèle utilisé pour les textes."
+      },
+      "imageModel": {
+        "Name": "Modèle image",
+        "Hint": "Identifiant du modèle utilisé pour les images (facultatif)."
+      },
+      "apiKey": {
+        "Name": "Clé API",
+        "Hint": "Enregistrée uniquement dans ce navigateur, jamais dans le monde : les joueurs ne peuvent pas la lire."
+      }
+    },
+    "Status": {
+      "NoProvider": "Choisissez un fournisseur d'IA dans les réglages du module.",
+      "MissingApiKey": "Saisissez la clé API dans les réglages du module (navigateur du MJ).",
+      "MissingTextModel": "Indiquez le modèle texte dans les réglages du module."
+    }
+  }
+}

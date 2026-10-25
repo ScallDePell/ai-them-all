@@ -4,7 +4,7 @@ Module **Foundry VTT** de génération de texte et d'images par IA, pensé pour 
 
 AI Them'All (ATA) fonctionne **seul**, sur n'importe quel système de jeu. Lorsque le module [Rule Them'All](https://github.com/ScallDePell/Rule-Them-All) (RTA) est actif, il s'y **intègre de façon optionnelle** au travers de l'API d'intégration générique de RTA, sans dépendance obligatoire dans un sens comme dans l'autre.
 
-> **Statut : en conception.** Ce dépôt démarre à partir de la *Spécification technique d'interconnexion RTA* v1.0 (21/10/2026). Les interfaces décrites ici sont des contrats à implémenter, pas encore du code livré.
+> **Statut : 0.1.0, squelette.** Le module se charge, déclare ses réglages et détecte Rule Them'All ; la génération n'est pas encore codée. Les interfaces décrites ici viennent de la *Spécification technique d'interconnexion RTA* v1.0 (21/10/2026) et restent des contrats à implémenter.
 
 ---
 
@@ -62,7 +62,8 @@ Quand RTA est actif et expose une API d'intégration compatible, ATA :
 - cible les **vrais champs** des feuilles RTA (nœuds de layout identifiés par une référence stable), pas des nœuds HTML ;
 - lit les sources (y compris les **observations narratives** : les mots de l'échelle de description, jamais le nombre) en respectant Permissions, `seenBy` et `visibleIf` ;
 - écrit les cibles via les services RTA (transactions, journal, relais MJ) après validation côté service ;
-- place son icône dans l'emplacement d'action que RTA rend lui-même sur chaque champ compatible.
+- place son icône dans l'emplacement d'action que RTA rend lui-même sur chaque champ compatible ;
+- propose un **concepteur de règles** dans l'assistant de Ruleset quand RTA expose l'API de l'assistant (API 1.1.0) : le MJ décrit une règle en français, l'IA remplit les parcours, l'assistant valide et montre l'aperçu, le MJ clique pour appliquer. L'IA n'écrit jamais directement dans un Ruleset.
 
 ---
 
@@ -147,7 +148,12 @@ ATA ne déclare **aucune dépendance** à RTA dans son `module.json`.
 | ATA-2 | Cards, cibles/sources et recettes, intégration au configurateur RTA, icônes sur les feuilles |
 | ATA-3 | Images de référence/inspiration/fond, résolution et variantes, galerie et sauvegarde validée |
 | ATA-4 | Adaptateurs pour systèmes tiers, profils avancés, historique, robustesse |
+| ATA-5 | Concepteur de règles dans l'assistant RTA (nécessite les lots RTA-J à L), actif seulement si RTA ≥ 1.1.0 est présent |
 
 ## Compatibilité
 - Foundry VTT **v14** (ApplicationV2, menus de paramètres, FilePicker), à vérifier en exécution.
 - Rule Them'All **≥ 1.1.0** pour le mode intégré (API d'intégration `1.x`) ; facultatif.
+
+## Développement
+- Tests : `npm test` (runner Node intégré, aucun appel réseau ; les réponses d'IA sont simulées).
+- Publication : monter la version dans `module.json` (et l'URL `download`) et `CHANGELOG.md`, pousser sur `main`, lancer le workflow **Release** à la main. Après chaque mise à jour, Ctrl+F5 sur tous les clients.

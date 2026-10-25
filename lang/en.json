@@ -1,0 +1,37 @@
+{
+  "AITHEMALL": {
+    "Settings": {
+      "provider": {
+        "Name": "AI provider",
+        "Hint": "Service used for generation. \"None\" turns generation off without affecting the rest of the world.",
+        "Choices": {
+          "none": "None",
+          "anthropic": "Claude (Anthropic API)",
+          "openai": "OpenAI-compatible API",
+          "ollama": "Ollama (local model)"
+        }
+      },
+      "endpoint": {
+        "Name": "Service address",
+        "Hint": "Leave empty for the provider's default address."
+      },
+      "textModel": {
+        "Name": "Text model",
+        "Hint": "Identifier of the model used for text."
+      },
+      "imageModel": {
+        "Name": "Image model",
+        "Hint": "Identifier of the model used for images (optional)."
+      },
+      "apiKey": {
+        "Name": "API key",
+        "Hint": "Stored in this browser only, never in the world: players cannot read it."
+      }
+    },
+    "Status": {
+      "NoProvider": "Choose an AI provider in the module settings.",
+      "MissingApiKey": "Enter the API key in the module settings (GM's browser).",
+      "MissingTextModel": "Enter the text model in the module settings."
+    }
+  }
+}
