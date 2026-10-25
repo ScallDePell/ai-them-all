@@ -141,17 +141,17 @@
     },
     "Designer": {
       "Title": "Décris ta règle (IA)",
-      "Intro": "Décris une règle en français : l'IA choisit un parcours et remplit ses réponses. Tu vérifies l'aperçu et tu cliques Appliquer ; rien n'est écrit avant.",
+      "Intro": "Décris une règle en français : l'IA la découpe en étapes (une entrée manquante devient une étape) et remplit chaque parcours. Tu vérifies l'aperçu et tu cliques Appliquer à chaque étape ; rien n'est écrit avant.",
       "Placeholder": "Ex. : Rafale de 1, 2 ou 3 séquences de 3 balles, +2 si la séquence tient dans les attaques par round…",
       "Propose": "Proposer",
       "Empty": "Décris d'abord ta règle.",
-      "Choosing": "Choix du parcours…",
-      "Filling": "Remplissage des réponses…",
-      "Retrying": "Correction après refus de l'assistant (essai {attempt})…",
-      "Review": "Vérifie l'aperçu ci-dessous, puis clique Appliquer.",
+      "Choosing": "Découpage de la règle en étapes…",
+      "Filling": "Étape {n}/{total} : remplissage des réponses…",
+      "Retrying": "Étape {n}/{total} : correction après refus de l'assistant (essai {attempt})…",
+      "Review": "Vérifie l'aperçu, clique Appliquer, puis Étape suivante.",
       "Question": "L'IA a besoin d'une précision :",
       "NoPath": "Aucun parcours de l'assistant n'exprime cette règle.",
-      "Invalid": "L'assistant refuse encore la proposition après deux corrections ; les réponses sont dans le formulaire pour que tu les corriges :",
+      "Invalid": "L'assistant refuse encore cette étape après deux corrections ; les réponses sont dans le formulaire pour que tu les corriges :",
       "ReadOnly": "Ce Ruleset est validé : l'assistant est en lecture seule.",
       "GMOnly": "Réservé au MJ.",
       "ConsentTitle": "Envoi à l'IA",
@@ -159,7 +159,11 @@
       "ConsentText": "ton texte :",
       "ConsentCatalog": "la liste des {count} parcours de l'assistant et leurs questions ;",
       "ConsentEntries": "les noms et identifiants des entrées du Ruleset que le parcours choisi peut réutiliser.",
-      "ConsentNever": "Rien d'autre ne sort du monde : jamais les fiches des personnages. Cette question n'est posée qu'une fois dans ce navigateur."
+      "ConsentNever": "Rien d'autre ne sort du monde : jamais les fiches des personnages. Cette question n'est posée qu'une fois dans ce navigateur.",
+      "ReviewLast": "Vérifie l'aperçu et clique Appliquer : c'est la dernière étape.",
+      "Next": "Étape suivante",
+      "Retry": "Refaire cette étape",
+      "AnswerInText": "Ajoute la réponse à ta description, puis Proposer."
     }
   }
 }

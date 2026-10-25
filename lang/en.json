@@ -141,17 +141,17 @@
     },
     "Designer": {
       "Title": "Describe your rule (AI)",
-      "Intro": "Describe a rule in words: the AI picks a path and fills its answers. You check the preview and click Apply; nothing is written before.",
+      "Intro": "Describe a rule in words: the AI splits it into steps (a missing entry becomes a step) and fills each path. You check the preview and click Apply at each step; nothing is written before.",
       "Placeholder": "E.g.: Burst of 1, 2 or 3 sequences of 3 bullets, +2 if the sequence fits in the attacks per round…",
       "Propose": "Propose",
       "Empty": "Describe your rule first.",
-      "Choosing": "Choosing the path…",
-      "Filling": "Filling the answers…",
-      "Retrying": "Fixing after the assistant refused (attempt {attempt})…",
-      "Review": "Check the preview below, then click Apply.",
+      "Choosing": "Splitting the rule into steps…",
+      "Filling": "Step {n}/{total}: filling the answers…",
+      "Retrying": "Step {n}/{total}: fixing after the assistant refused (attempt {attempt})…",
+      "Review": "Check the preview, click Apply, then Next step.",
       "Question": "The AI needs a detail:",
       "NoPath": "No assistant path expresses this rule.",
-      "Invalid": "The assistant still refuses the proposal after two fixes; the answers are in the form for you to correct:",
+      "Invalid": "The assistant still refuses this step after two fixes; the answers are in the form for you to correct:",
       "ReadOnly": "This Ruleset is validated: the assistant is read-only.",
       "GMOnly": "GM only.",
       "ConsentTitle": "Sending to the AI",
@@ -159,7 +159,11 @@
       "ConsentText": "your text:",
       "ConsentCatalog": "the list of the assistant's {count} paths and their questions;",
       "ConsentEntries": "the names and ids of the Ruleset entries the chosen path may reuse.",
-      "ConsentNever": "Nothing else leaves the world: never the characters' sheets. This is asked once in this browser."
+      "ConsentNever": "Nothing else leaves the world: never the characters' sheets. This is asked once in this browser.",
+      "ReviewLast": "Check the preview and click Apply: this is the last step.",
+      "Next": "Next step",
+      "Retry": "Redo this step",
+      "AnswerInText": "Add the answer to your description, then Propose."
     }
   }
 }

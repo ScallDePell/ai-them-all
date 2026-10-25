@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Concepteur de règles en plusieurs étapes : l'IA découpe la règle en parcours ordonnés. Une entrée dont la règle a besoin et qui manque au Ruleset (par exemple une définition Hauteur) devient une étape à créer d'abord, au lieu d'une question.
+- Chaque étape est remplie avec les entrées créées par les étapes précédentes ; le MJ applique, puis passe à l'**Étape suivante**. Une étape refusée peut être refaite.
+- Les questions de l'IA sont réservées aux valeurs de règle absentes du texte (nombre, dé, seuil).
+
 ## 0.2.0
 
 - **Intégration à Rule Them'All** (API d'intégration 1.x, négociée sur les capacités) :

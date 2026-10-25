@@ -6,3 +6,6 @@
 .ata-variant img, .ata-original { max-width: 100%; max-height: 220px; object-fit: contain; border: none; }
 .ata-designer textarea { width: 100%; }
 .ata-designer-actions { display: flex; justify-content: flex-end; margin: 0.25rem 0; }
+.ata-steps { margin: 0.25rem 0; padding-left: 0; list-style: none; }
+.ata-steps li { display: flex; gap: 0.4rem; align-items: baseline; }
+.ata-steps li.current { font-weight: bold; }
