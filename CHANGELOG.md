@@ -4,6 +4,7 @@
 
 - Fenêtre « Fournisseur d'IA » (Paramètres du module → Configurer) : fournisseur, adresse, clé API, bouton **Tester la connexion**.
 - Après un test réussi, les modèles texte et image se choisissent dans des listes remplies par le service (Claude, API compatible OpenAI, Ollama).
+- Services texte et image indépendants : case « Même service que le texte », sinon fournisseur, adresse et clé propres aux images (Claude n'est pas proposé pour les images). Un test de connexion par service.
 - Messages d'erreur explicites : service injoignable, clé refusée, réponse inattendue.
 
 ## 0.1.0

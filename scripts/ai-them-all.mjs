@@ -15,5 +15,7 @@ Hooks.once("init", () => {
 Hooks.once("ready", () => {
   if (!game.user.isGM) return;
   const status = describeProviderStatus(readSettings());
-  if (!status.ready) console.info("AI Them'All | AI not configured:", status.issues.map(k => game.i18n.localize(k)).join(" "));
+  for (const [kind, s] of Object.entries(status)) {
+    if (!s.ready) console.info(`AI Them'All | ${kind} service not configured:`, s.issues.map(k => game.i18n.localize(k)).join(" "));
+  }
 });

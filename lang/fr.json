@@ -26,12 +26,30 @@
       "apiKey": {
         "Name": "Clé API",
         "Hint": "Enregistrée uniquement dans ce navigateur, jamais dans le monde : les joueurs ne peuvent pas la lire."
+      },
+      "imageSameAsText": {
+        "Name": "Même service que le texte",
+        "Hint": "Décocher pour générer les images avec un autre service (par exemple Claude pour le texte, OpenAI pour les images)."
+      },
+      "imageProvider": {
+        "Name": "Fournisseur d'images",
+        "Hint": "Service utilisé pour les images. Claude ne génère pas d'images et n'est pas proposé ici."
+      },
+      "imageEndpoint": {
+        "Name": "Adresse du service d'images",
+        "Hint": "Laisser vide pour l'adresse par défaut du fournisseur."
+      },
+      "imageApiKey": {
+        "Name": "Clé API du service d'images",
+        "Hint": "Enregistrée uniquement dans ce navigateur, jamais dans le monde."
       }
     },
     "Status": {
       "NoProvider": "Choisissez un fournisseur d'IA dans les réglages du module.",
       "MissingApiKey": "Saisissez la clé API dans les réglages du module (navigateur du MJ).",
-      "MissingTextModel": "Indiquez le modèle texte dans les réglages du module."
+      "MissingTextModel": "Indiquez le modèle texte dans les réglages du module.",
+      "MissingImageModel": "Indiquez le modèle image dans la fenêtre du fournisseur d'IA.",
+      "NoImageGeneration": "Claude ne génère pas d'images : choisissez un service d'images séparé."
     },
     "Provider": {
       "Title": "AI Them'All : fournisseur d'IA",
@@ -53,7 +71,11 @@
         "auth": "Clé API refusée par le service ({detail}).",
         "http": "Le service a répondu par une erreur ({detail}).",
         "badResponse": "Réponse inattendue : l'adresse ne semble pas être celle de ce type de service."
-      }
+      },
+      "TextSection": "Texte",
+      "ImageSection": "Images",
+      "ConnectedImage": "Connecté : {image} modèle(s) image.",
+      "ClaudeNoImages": "Claude ne génère pas d'images : décochez « Même service que le texte » pour choisir un service d'images."
     }
   }
 }

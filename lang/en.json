@@ -26,12 +26,30 @@
       "apiKey": {
         "Name": "API key",
         "Hint": "Stored in this browser only, never in the world: players cannot read it."
+      },
+      "imageSameAsText": {
+        "Name": "Same service as text",
+        "Hint": "Uncheck to generate images with another service (for example Claude for text, OpenAI for images)."
+      },
+      "imageProvider": {
+        "Name": "Image provider",
+        "Hint": "Service used for images. Claude does not generate images and is not offered here."
+      },
+      "imageEndpoint": {
+        "Name": "Image service address",
+        "Hint": "Leave empty for the provider's default address."
+      },
+      "imageApiKey": {
+        "Name": "Image service API key",
+        "Hint": "Stored in this browser only, never in the world."
       }
     },
     "Status": {
       "NoProvider": "Choose an AI provider in the module settings.",
       "MissingApiKey": "Enter the API key in the module settings (GM's browser).",
-      "MissingTextModel": "Enter the text model in the module settings."
+      "MissingTextModel": "Enter the text model in the module settings.",
+      "MissingImageModel": "Enter the image model in the AI provider window.",
+      "NoImageGeneration": "Claude does not generate images: choose a separate image service."
     },
     "Provider": {
       "Title": "AI Them'All: AI provider",
@@ -53,7 +71,11 @@
         "auth": "API key rejected by the service ({detail}).",
         "http": "The service returned an error ({detail}).",
         "badResponse": "Unexpected response: the address does not look like this kind of service."
-      }
+      },
+      "TextSection": "Text",
+      "ImageSection": "Images",
+      "ConnectedImage": "Connected: {image} image model(s).",
+      "ClaudeNoImages": "Claude does not generate images: uncheck \"Same service as text\" to pick an image service."
     }
   }
 }
