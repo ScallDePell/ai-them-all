@@ -5,6 +5,7 @@ const key = (setting, part) => `AITHEMALL.Settings.${setting}.${part}`;
 /**
  * Settings declared by the module, independent of Foundry so they can be tested.
  * The API key is client-scoped on purpose: world settings are readable by every player.
+ * All of them are edited in the provider window rather than the native settings list.
  */
 export const SETTINGS = Object.freeze([
   {
@@ -18,4 +19,4 @@ export const SETTINGS = Object.freeze([
   { key: "textModel", scope: "world", type: String, default: "" },
   { key: "imageModel", scope: "world", type: String, default: "" },
   { key: "apiKey", scope: "client", type: String, default: "" }
-].map(s => Object.freeze({ ...s, name: key(s.key, "Name"), hint: key(s.key, "Hint"), config: true })));
+].map(s => Object.freeze({ ...s, name: key(s.key, "Name"), hint: key(s.key, "Hint"), config: false })));

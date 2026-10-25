@@ -32,6 +32,28 @@
       "NoProvider": "Choisissez un fournisseur d'IA dans les réglages du module.",
       "MissingApiKey": "Saisissez la clé API dans les réglages du module (navigateur du MJ).",
       "MissingTextModel": "Indiquez le modèle texte dans les réglages du module."
+    },
+    "Provider": {
+      "Title": "AI Them'All : fournisseur d'IA",
+      "MenuName": "Fournisseur d'IA",
+      "MenuLabel": "Configurer",
+      "MenuHint": "Service, adresse, clé API, test de connexion et choix des modèles.",
+      "Test": "Tester la connexion",
+      "Testing": "Connexion en cours…",
+      "Connected": "Connecté : {text} modèle(s) texte, {image} modèle(s) image.",
+      "TestFirst": "Testez la connexion pour choisir les modèles dans une liste.",
+      "NotListed": "absent du service",
+      "NoModel": "Aucun",
+      "NoImageModels": "Ce service ne propose aucun modèle image.",
+      "Save": "Enregistrer",
+      "Errors": {
+        "noProvider": "Choisissez d'abord un fournisseur.",
+        "missingApiKey": "Ce fournisseur demande une clé API.",
+        "network": "Service injoignable. Vérifiez l'adresse ; pour Ollama, autorisez l'origine de Foundry (variable OLLAMA_ORIGINS). {detail}",
+        "auth": "Clé API refusée par le service ({detail}).",
+        "http": "Le service a répondu par une erreur ({detail}).",
+        "badResponse": "Réponse inattendue : l'adresse ne semble pas être celle de ce type de service."
+      }
     }
   }
 }

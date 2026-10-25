@@ -3,12 +3,33 @@
   "title": "AI Them'All",
   "description": "Génération de texte et d'images par IA pour les feuilles d'Actor et d'Item. Fonctionne seul ; s'intègre à Rule Them'All quand il est actif.",
   "version": "0.1.0",
-  "authors": [{ "name": "Luca", "url": "https://github.com/ScallDePell" }],
-  "compatibility": { "minimum": "14", "verified": "14" },
-  "esmodules": ["scripts/ai-them-all.mjs"],
+  "authors": [
+    {
+      "name": "Luca",
+      "url": "https://github.com/ScallDePell"
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "esmodules": [
+    "scripts/ai-them-all.mjs"
+  ],
+  "styles": [
+    "styles/ai-them-all.css"
+  ],
   "languages": [
-    { "lang": "fr", "name": "Français", "path": "lang/fr.json" },
-    { "lang": "en", "name": "English", "path": "lang/en.json" }
+    {
+      "lang": "fr",
+      "name": "Français",
+      "path": "lang/fr.json"
+    },
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
   ],
   "url": "https://github.com/ScallDePell/ai-them-all",
   "manifest": "https://github.com/ScallDePell/ai-them-all/releases/latest/download/module.json",

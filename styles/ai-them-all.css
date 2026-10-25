@@ -1,0 +1,3 @@
+#ai-them-all-provider .ata-status { margin: 0.25rem 0; font-weight: bold; }
+#ai-them-all-provider .ata-status.success { color: var(--color-level-success, #2e7d32); }
+#ai-them-all-provider .ata-status.error { color: var(--color-level-error, #c62828); }

@@ -32,6 +32,28 @@
       "NoProvider": "Choose an AI provider in the module settings.",
       "MissingApiKey": "Enter the API key in the module settings (GM's browser).",
       "MissingTextModel": "Enter the text model in the module settings."
+    },
+    "Provider": {
+      "Title": "AI Them'All: AI provider",
+      "MenuName": "AI provider",
+      "MenuLabel": "Configure",
+      "MenuHint": "Service, address, API key, connection test and model choice.",
+      "Test": "Test connection",
+      "Testing": "Connecting…",
+      "Connected": "Connected: {text} text model(s), {image} image model(s).",
+      "TestFirst": "Test the connection to pick models from a list.",
+      "NotListed": "not offered by the service",
+      "NoModel": "None",
+      "NoImageModels": "This service offers no image model.",
+      "Save": "Save",
+      "Errors": {
+        "noProvider": "Choose a provider first.",
+        "missingApiKey": "This provider needs an API key.",
+        "network": "Service unreachable. Check the address; for Ollama, allow Foundry's origin (OLLAMA_ORIGINS variable). {detail}",
+        "auth": "API key rejected by the service ({detail}).",
+        "http": "The service returned an error ({detail}).",
+        "badResponse": "Unexpected response: the address does not look like this kind of service."
+      }
     }
   }
 }
