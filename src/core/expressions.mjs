@@ -15,6 +15,7 @@ export const EXPRESSION_GUIDE = [
   '{"type": "literal", "value": 3} ; {"type": "parameter", "id": "<id d\'un Paramètre>"} ; {"type": "formula", "id": "<id d\'une Formule>"} ;',
   '{"type": "reference", "reference": {"objectKind": "definition", "objectId": "<id de la définition>", "capabilityId": "value", "outputId": "value.final"}} pour la valeur d\'une définition (capabilityId "pool" et outputId "pool.current" pour une réserve) ;',
   '{"type": "context", "path": "variables.test.margin"} pour le résultat d\'un test en cours : variables.test.total (total du jet), variables.test.natural (dé naturel), variables.test.margin (écart au DD, positif si réussi), variables.test.inputs.difficulty (DD).',
+  '{"type": "context", "path": "variables.input.<id>"} pour une valeur choisie au lancement d\'une action (une entrée de l\'action, par exemple variables.input.sequences pour un nombre de séquences) ; si l\'entrée n\'existe pas encore, choisis son id toi-même : l\'étape qui crée l\'action la déclarera avec cet id.',
   'Opérations : {"type": "add"|"subtract"|"multiply"|"divide"|"min"|"max", "args": [nœuds]} ; {"type": "floor"|"ceil"|"round", "value": nœud} ;',
   '{"type": "gt"|"gte"|"lt"|"lte"|"eq"|"neq", "left": nœud, "right": nœud} ; {"type": "and"|"or", "args": [nœuds]} ; {"type": "if", "condition": nœud, "then": nœud, "else": nœud} ;',
   '{"type": "clamp", "value": nœud, "min": nœud, "max": nœud}.',

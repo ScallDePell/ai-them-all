@@ -149,7 +149,7 @@
       "Filling": "Step {n}/{total}: filling the answers…",
       "Retrying": "Step {n}/{total}: fixing after the assistant refused (attempt {attempt})…",
       "Review": "Check the preview, click Apply, then Next step.",
-      "Question": "The AI needs a detail:",
+      "Question": "The AI needs a detail; nothing was opened in the assistant for this step:",
       "NoPath": "No assistant path expresses this rule.",
       "Invalid": "The assistant still refuses this step after two fixes; the answers are in the form for you to correct:",
       "ReadOnly": "This Ruleset is validated: the assistant is read-only.",
@@ -172,7 +172,9 @@
       "Reuses": "reuses",
       "InvalidNotOpened": "The AI could not write a valid formula after two fixes; nothing was opened in the assistant. Redo the step or make the rule clearer:",
       "Warnings": "Note: the preview lists {count} item(s) to complete before publishing.",
-      "Unusable": "The AI's answer could not be used, even after a second try ({reason}). Propose again; if it happens again, try a more capable model."
+      "Unusable": "The AI's answer could not be used, even after a second try ({reason}). Propose again; if it happens again, try a more capable model.",
+      "Answer": "Answer",
+      "AnswerPlaceholder": "Your answer (kept for every step of this rule)"
     }
   }
 }

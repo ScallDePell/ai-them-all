@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.5
+
+- Concepteur de règles : quand l'IA pose une question, un champ **Répondre** apparaît dans le panneau ; la réponse est gardée pour toutes les étapes de la règle (plus besoin de réécrire la description).
+- L'IA ne demande plus d'identifiant au MJ : elle le choisit et le réutilise d'une étape à l'autre.
+- Grammaire des formules : les valeurs choisies au lancement d'une action se lisent par `variables.input.<id>` (ex. nombre de séquences d'une rafale).
+
 ## 0.2.4
 
 - Concepteur de règles : une réponse de l'IA illisible ou citant des parcours inconnus (un titre au lieu d'un id) repart une fois vers l'IA avec la raison ; si elle reste inutilisable, le panneau dit pourquoi au lieu de « Aucun parcours ».

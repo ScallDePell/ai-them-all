@@ -120,3 +120,13 @@ test("an unreadable or unknown-path answer gets one more try with the reason", a
   const fixed = await planSteps({ description: "Rafale", catalog, generate: scripted(['{"steps": [{"pathId": "Test"}]}', '{"steps": [{"pathId": "test", "goal": "Test"}]}']).generate });
   assert.equal(fixed.status, "steps");
 });
+
+test("the GM's answers go with the next requests, and identifiers are never asked", async () => {
+  const { prompts, generate } = scripted(['{"answers": {"n": 1}}']);
+  await fillStep({ description: "Rafale", step: { pathId: "test", goal: "" }, catalog, generate,
+    clarifications: [{ question: "Combien de séquences au plus ?", answer: "3" }],
+    describePath: async () => ({ questions: [{ id: "expression", kind: "formula" }] }), plan: async () => ({ valid: true }) });
+  assert.match(prompts[0].prompt, /Combien de séquences au plus \? → 3/);
+  assert.match(prompts[0].system, /Ne demande jamais un identifiant/);
+  assert.match(prompts[0].prompt, /variables\.input\./);
+});

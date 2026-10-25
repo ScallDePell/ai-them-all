@@ -42,7 +42,7 @@ export function renderRulesPanel(element, assistant) {
   const stepsList = element.querySelector("[data-ata-steps]");
   const status = element.querySelector("[data-ata-status]");
   const next = element.querySelector("[data-ata-next]");
-  const run = { description: "", steps: [], index: -1, done: [], last: null, busy: false, service: null, catalog: null };
+  const run = { description: "", steps: [], index: -1, done: [], last: null, busy: false, service: null, catalog: null, inventory: [], clarifications: [], pending: null };
 
   const show = (html, kind = "") => { status.innerHTML = html ? `<p class="ata-status ${kind}">${html}</p>` : ""; };
   const busy = text => show(`<i class="fa-solid fa-spinner fa-spin"></i> ${esc(text)}`);
@@ -58,6 +58,14 @@ export function renderRulesPanel(element, assistant) {
     }).join("");
   };
   const drawNext = buttons => { next.innerHTML = buttons.join(""); };
+  // A question of the AI is answered here; the answer goes with every later request of this rule.
+  const ask = (question, scope, buttons = []) => {
+    run.pending = { question, scope };
+    status.innerHTML = `<p class="ata-status">${esc(t("Designer.Question"))} ${esc(question)}</p>
+      <textarea rows="2" data-ata-answer placeholder="${esc(t("Designer.AnswerPlaceholder"))}"></textarea>`;
+    drawNext([button("answer", "fa-reply", t("Designer.Answer")), ...buttons]);
+    status.querySelector("[data-ata-answer]")?.focus();
+  };
   const sync = state => {
     const readOnly = state?.readOnly || !game.user.isGM;
     for (const control of element.querySelectorAll("button[data-ata]")) control.disabled = readOnly || run.busy;
@@ -75,7 +83,7 @@ export function renderRulesPanel(element, assistant) {
     drawNext([]);
     const step = run.steps[index];
     const result = await fillStep({
-      description: run.description, step, done: run.done, catalog: run.catalog, generate,
+      description: run.description, step, done: run.done, clarifications: run.clarifications, catalog: run.catalog, generate,
       describePath: (pathId, answers) => assistant.describePath(pathId, answers),
       plan: (pathId, answers) => assistant.plan(pathId, answers),
       onAttempt: attempt => busy(t(attempt ? "Designer.Retrying" : "Designer.Filling", { attempt, n: index + 1, total: run.steps.length }))
@@ -89,8 +97,7 @@ export function renderRulesPanel(element, assistant) {
       show(`${esc(result.explanation)} ${esc(t(last ? "Designer.ReviewLast" : "Designer.Review"))}${toComplete}`, result.warnings.length ? "" : "success");
       drawNext(onward);
     } else if (result.status === "question") {
-      show(`${esc(t("Designer.Question"))} ${esc(result.question)}`);
-      drawNext([button("retry", "fa-rotate", t("Designer.Retry")), ...onward]);
+      ask(result.question, "step", [button("retry", "fa-rotate", t("Designer.Retry")), ...onward]);
     } else {
       if (result.openable) await assistant.openPath(result.pathId, result.answers);
       show(`${esc(t(result.openable ? "Designer.Invalid" : "Designer.InvalidNotOpened"))} ${esc(result.errors.map(e => e.detail ?? e.code).join(" · "))}`, "error");
@@ -106,14 +113,20 @@ export function renderRulesPanel(element, assistant) {
     if (!ready.ready) return show(ready.issues.map(key => esc(game.i18n.localize(key))).join(" "), "error");
     run.catalog = await assistant.catalog();
     if (!await consent(description, catalogSummary(run.catalog))) return;
-    Object.assign(run, { description, steps: [], index: -1, done: [], last: null });
+    Object.assign(run, { description, steps: [], index: -1, done: [], last: null, clarifications: [], pending: null });
+    busy(t("Designer.Inventory"));
+    run.inventory = await collectInventory(run.catalog, (pathId, answers) => assistant.describePath(pathId, answers));
+    await split();
+  }
+
+  async function split() {
+    run.steps = [];
+    run.index = -1;
     drawSteps();
     drawNext([]);
-    busy(t("Designer.Inventory"));
-    const inventory = await collectInventory(run.catalog, (pathId, answers) => assistant.describePath(pathId, answers));
-    busy(t("Designer.Choosing", { count: inventory.length }));
-    const result = await planSteps({ description, catalog: run.catalog, inventory, generate });
-    if (result.status === "question") return show(`${esc(t("Designer.Question"))} ${esc(result.question)} ${esc(t("Designer.AnswerInText"))}`);
+    busy(t("Designer.Choosing", { count: run.inventory.length }));
+    const result = await planSteps({ description: run.description, catalog: run.catalog, inventory: run.inventory, clarifications: run.clarifications, generate });
+    if (result.status === "question") return ask(result.question, "steps");
     if (result.status === "noPath") return show(`${esc(t("Designer.NoPath"))} ${esc(result.reason)}`, "error");
     if (result.status === "unusable") return show(esc(t("Designer.Unusable", { reason: result.reason })), "error");
     run.steps = result.steps;
@@ -142,6 +155,16 @@ export function renderRulesPanel(element, assistant) {
         if (!run.steps.length) { drawNext([]); show(""); }
       }
       else if (action === "begin") await prepare(0);
+      else if (action === "answer") {
+        const answer = status.querySelector("[data-ata-answer]")?.value.trim();
+        if (answer && run.pending) {
+          run.clarifications.push({ question: run.pending.question, answer });
+          const { scope } = run.pending;
+          run.pending = null;
+          if (scope === "steps") await split();
+          else await prepare(run.index);
+        }
+      }
       else if (action === "retry") await prepare(run.index);
       else if (action === "next") await advance(false);
       else if (action === "skip") await advance(true);

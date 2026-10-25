@@ -11,7 +11,8 @@ const SYSTEM = [
   "Tu aides un MJ à saisir une règle de jeu de rôle dans l'assistant de Rule Them'All, un module Foundry VTT.",
   "L'assistant propose des parcours : chacun pose des questions et crée des entrées du Ruleset à partir des réponses.",
   "Tu ne réponds qu'en JSON, sans texte autour.",
-  "N'invente aucune valeur de règle absente du texte du MJ : si une valeur obligatoire manque, demande-la."
+  "N'invente aucune valeur de règle absente du texte du MJ : si une valeur obligatoire manque, demande-la.",
+  "Ne demande jamais un identifiant ou un nom technique au MJ : choisis-le toi-même (minuscules, chiffres, tirets) et réutilise le même dans les étapes suivantes."
 ].join(" ");
 
 /** What the AI needs to choose a path: words only, no questions yet. */
@@ -47,12 +48,16 @@ export async function collectInventory(catalog, describePath) {
   return [...found.values()].slice(0, INVENTORY_LIMIT);
 }
 
-export function buildStepsPrompt(description, summary, inventory = [], previous = null) {
+const clarified = clarifications => clarifications?.length
+  ? `Précisions du MJ, en réponse à tes questions :\n${clarifications.map(c => `- ${c.question} → ${c.answer}`).join("\n")}` : "";
+
+export function buildStepsPrompt(description, summary, inventory = [], previous = null, clarifications = []) {
   const retry = previous ? [`Ta réponse précédente n'a pas pu être utilisée : ${previous}. Réponds de nouveau avec un seul objet JSON valide.`] : [];
   return {
     system: SYSTEM,
     prompt: [
       `Règle décrite par le MJ :\n${description.trim()}`,
+      ...[clarified(clarifications)].filter(Boolean),
       `Parcours disponibles :\n${JSON.stringify(summary)}`,
       `Entrées qui existent déjà dans le Ruleset (collection, id, nom) :\n${JSON.stringify(inventory)}`,
       "Découpe cette règle en une liste ordonnée d'étapes, une par parcours. Une règle complexe se construit en combinant plusieurs parcours (briques comme formula, condition, cost, action, et parcours comme test ou attack) : réponds none seulement si aucune combinaison ne convient.",
@@ -70,9 +75,10 @@ export function buildStepsPrompt(description, summary, inventory = [], previous 
   };
 }
 
-export function buildFillPrompt(description, path, { answerFormats = {}, goal = "", done = [], previous = null } = {}) {
+export function buildFillPrompt(description, path, { answerFormats = {}, goal = "", done = [], previous = null, clarifications = [] } = {}) {
   const lines = [
     `Règle décrite par le MJ :\n${description.trim()}`,
+    clarified(clarifications),
     goal && `Étape à remplir maintenant : ${goal}`,
     done.length && `Étapes déjà appliquées et entrées qu'elles ont créées (réutilise leurs id) :\n${JSON.stringify(done)}`,
     `Parcours de cette étape (questions, choix possibles et entrées existantes du Ruleset) :\n${JSON.stringify(path)}`,
@@ -109,12 +115,12 @@ export function parseJsonAnswer(text) {
  * {status: "steps", steps: [{pathId, goal, reuses}], explanation} | {status: "question", question} | {status: "noPath", reason}
  * | {status: "unusable", reason} when the AI's answer could not be read, even after one more try.
  */
-export async function planSteps({ description, catalog, inventory = [], generate, maxRetries = 1 }) {
+export async function planSteps({ description, catalog, inventory = [], clarifications = [], generate, maxRetries = 1 }) {
   const summary = catalogSummary(catalog);
   const known = new Set(summary.map(path => path.id));
   let previous = null, reason = "";
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory, previous)));
+    const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory, previous, clarifications)));
     if (answer?.question) return { status: "question", question: String(answer.question) };
     if (answer?.none !== undefined && !answer?.steps) return { status: "noPath", reason: String(answer.none || "") };
     const proposed = Array.isArray(answer?.steps) ? answer.steps : null;
@@ -144,13 +150,13 @@ export async function planSteps({ description, catalog, inventory = [], generate
  * {status: "planned", pathId, answers, plan, warnings, explanation} | {status: "question", question}
  * | {status: "invalid", pathId, answers, errors, openable}.
  */
-export async function fillStep({ description, step, done = [], catalog, describePath, plan, generate, maxRetries = MAX_RETRIES, onAttempt = () => {} }) {
+export async function fillStep({ description, step, done = [], clarifications = [], catalog, describePath, plan, generate, maxRetries = MAX_RETRIES, onAttempt = () => {} }) {
   const { pathId, goal } = step;
   const path = await describePath(pathId, {});
   let previous = null;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     onAttempt(attempt);
-    const filled = parseJsonAnswer(await generate(buildFillPrompt(description, path, { answerFormats: catalog?.answerFormats, goal, done, previous })));
+    const filled = parseJsonAnswer(await generate(buildFillPrompt(description, path, { answerFormats: catalog?.answerFormats, goal, done, previous, clarifications })));
     if (filled?.question) return { status: "question", question: String(filled.question) };
     const answers = filled?.answers && typeof filled.answers === "object" ? filled.answers : null;
     if (!answers) {
