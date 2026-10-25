@@ -70,12 +70,96 @@
         "network": "Service unreachable. Check the address; for Ollama, allow Foundry's origin (OLLAMA_ORIGINS variable). {detail}",
         "auth": "API key rejected by the service ({detail}).",
         "http": "The service returned an error ({detail}).",
-        "badResponse": "Unexpected response: the address does not look like this kind of service."
+        "badResponse": "Unexpected response: the address does not look like this kind of service.",
+        "noModel": "No model chosen for this service: open the AI provider window.",
+        "noImageGeneration": "This service cannot generate images: choose an OpenAI-compatible service for images."
       },
       "TextSection": "Text",
       "ImageSection": "Images",
       "ConnectedImage": "Connected: {image} image model(s).",
       "ClaudeNoImages": "Claude does not generate images: uncheck \"Same service as text\" to pick an image service."
+    },
+    "Section": {
+      "Title": "AI Them'All"
+    },
+    "Card": {
+      "EditorTitle": "Generation card",
+      "Name": "Name",
+      "Kind": "Generates",
+      "Kinds": {
+        "text": "Text",
+        "image": "Image"
+      },
+      "Target": "Target field",
+      "TargetHint": "One field of a sheet, or any field of the same kind.",
+      "AnyField": {
+        "text": "Any text field",
+        "image": "Any image field"
+      },
+      "MissingField": "Field gone from the sheet",
+      "Slot": {
+        "headerImg": "Header image",
+        "headerName": "Name",
+        "templateImage": "Content Template image"
+      },
+      "AutoSheet": {
+        "actor": "AUTO sheet (Actor)",
+        "item": "AUTO sheet (Item)"
+      },
+      "Prompt": "Instructions",
+      "PromptHint": {
+        "text": "What the AI must write. Only these words, the GM's details and the Document's name are sent.",
+        "image": "What the image must show, and its style."
+      },
+      "UseCurrent": "Build on the current content",
+      "UseCurrentHint": "Also sends the text already in the field, to improve it rather than start over.",
+      "Variants": "Variants",
+      "Description": "Description",
+      "Enabled": "Enabled",
+      "NewName": "New card",
+      "CopySuffix": " (copy)",
+      "Invalid": "The target field is gone or changed kind: choose another one."
+    },
+    "Generate": {
+      "Action": "Generate with AI",
+      "Title": "Generate with AI",
+      "Card": "Card",
+      "Extra": "Details (optional)",
+      "Busy": "Generating…",
+      "Generate": "Generate",
+      "Again": "Again",
+      "Validate": "Validate",
+      "Cancel": "Cancel",
+      "Result": "Result",
+      "ResultHint": "You may touch up the text before validating.",
+      "Variant": "Variant {n}",
+      "Original": "Current image:",
+      "Conflict": "The field changed since this window opened: nothing was written. Generate again.",
+      "Written": "Field updated.",
+      "WrittenDraft": "Field updated in the Ruleset draft.",
+      "UploadFailed": "The image could not be saved in the world."
+    },
+    "Designer": {
+      "Title": "Describe your rule (AI)",
+      "Intro": "Describe a rule in words: the AI picks a path and fills its answers. You check the preview and click Apply; nothing is written before.",
+      "Placeholder": "E.g.: Burst of 1, 2 or 3 sequences of 3 bullets, +2 if the sequence fits in the attacks per round…",
+      "Propose": "Propose",
+      "Empty": "Describe your rule first.",
+      "Choosing": "Choosing the path…",
+      "Filling": "Filling the answers…",
+      "Retrying": "Fixing after the assistant refused (attempt {attempt})…",
+      "Review": "Check the preview below, then click Apply.",
+      "Question": "The AI needs a detail:",
+      "NoPath": "No assistant path expresses this rule.",
+      "Invalid": "The assistant still refuses the proposal after two fixes; the answers are in the form for you to correct:",
+      "ReadOnly": "This Ruleset is validated: the assistant is read-only.",
+      "GMOnly": "GM only.",
+      "ConsentTitle": "Sending to the AI",
+      "ConsentIntro": "To propose paths, AI Them'All sends to the configured AI service:",
+      "ConsentText": "your text:",
+      "ConsentCatalog": "the list of the assistant's {count} paths and their questions;",
+      "ConsentEntries": "the names and ids of the Ruleset entries the chosen path may reuse.",
+      "ConsentNever": "Nothing else leaves the world: never the characters' sheets. This is asked once in this browser."
     }
   }
 }

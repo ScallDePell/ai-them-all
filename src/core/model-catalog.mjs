@@ -1,18 +1,11 @@
 import { DEFAULT_ENDPOINTS, KEYED_PROVIDERS, PROVIDERS } from "./constants.mjs";
+import { ConnectionError, requestJson, trimSlash } from "./http.mjs";
 
-export class ConnectionError extends Error {
-  /** @param {"noProvider"|"missingApiKey"|"network"|"auth"|"http"|"badResponse"} code */
-  constructor(code, detail = "") {
-    super(`${code}${detail ? `: ${detail}` : ""}`);
-    this.code = code;
-    this.detail = detail;
-  }
-}
+export { ConnectionError };
 
 const IMAGE_MODEL = /dall-e|gpt-image|image|flux|stable-diffusion|sdxl/i;
 const NOT_GENERATIVE = /embed|whisper|tts|transcribe|moderation|audio|realtime|search/i;
 
-const trimSlash = url => url.replace(/\/+$/, "");
 const byLabel = (a, b) => a.label.localeCompare(b.label);
 
 function classify(entries) {
@@ -62,20 +55,7 @@ export async function listModels({ provider, endpoint, apiKey } = {}, fetchImpl 
   if (!adapter) throw new ConnectionError("noProvider");
   if (KEYED_PROVIDERS.includes(provider) && !apiKey?.trim()) throw new ConnectionError("missingApiKey");
   const base = trimSlash(endpoint?.trim() || DEFAULT_ENDPOINTS[provider]);
-  let response;
-  try {
-    response = await fetchImpl(adapter.url(base), { headers: adapter.headers(apiKey?.trim()) });
-  } catch (error) {
-    throw new ConnectionError("network", error?.message ?? String(error));
-  }
-  if (response.status === 401 || response.status === 403) throw new ConnectionError("auth", String(response.status));
-  if (!response.ok) throw new ConnectionError("http", String(response.status));
-  let body;
-  try {
-    body = await response.json();
-  } catch {
-    throw new ConnectionError("badResponse");
-  }
+  const body = await requestJson(fetchImpl, adapter.url(base), { headers: adapter.headers(apiKey?.trim()) });
   if (!adapter.valid(body)) throw new ConnectionError("badResponse");
   return adapter.parse(body);
 }

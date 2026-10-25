@@ -1,3 +1,8 @@
-#ai-them-all-provider .ata-status { margin: 0.25rem 0; font-weight: bold; }
-#ai-them-all-provider .ata-status.success { color: var(--color-level-success, #2e7d32); }
-#ai-them-all-provider .ata-status.error { color: var(--color-level-error, #c62828); }
+.ata-status { margin: 0.25rem 0; font-weight: bold; }
+.ata-status.success { color: var(--color-level-success, #2e7d32); }
+.ata-status.error { color: var(--color-level-error, #c62828); }
+.ata-variants { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
+.ata-variant { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; cursor: pointer; }
+.ata-variant img, .ata-original { max-width: 100%; max-height: 220px; object-fit: contain; border: none; }
+.ata-designer textarea { width: 100%; }
+.ata-designer-actions { display: flex; justify-content: flex-end; margin: 0.25rem 0; }

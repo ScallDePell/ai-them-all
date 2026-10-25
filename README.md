@@ -4,7 +4,7 @@ Module **Foundry VTT** de génération de texte et d'images par IA, pensé pour 
 
 AI Them'All (ATA) fonctionne **seul**, sur n'importe quel système de jeu. Lorsque le module [Rule Them'All](https://github.com/ScallDePell/Rule-Them-All) (RTA) est actif, il s'y **intègre de façon optionnelle** au travers de l'API d'intégration générique de RTA, sans dépendance obligatoire dans un sens comme dans l'autre.
 
-> **Statut : 0.1.0, squelette.** Le module se charge, déclare ses réglages et détecte Rule Them'All ; la génération n'est pas encore codée. Les interfaces décrites ici viennent de la *Spécification technique d'interconnexion RTA* v1.0 (21/10/2026) et restent des contrats à implémenter.
+> **Statut : en développement.** Réglages des services texte et image, génération, cards et intégration à Rule Them'All (configurateur, champs des feuilles, concepteur de règles). Le mode autonome sans RTA n'offre pas encore de cards. Les interfaces décrites ici viennent de la *Spécification technique d'interconnexion RTA* v1.0 (21/10/2026) et restent des contrats à implémenter.
 
 ---
 

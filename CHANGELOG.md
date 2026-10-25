@@ -1,5 +1,13 @@
 # Changelog
 
+## Non publié
+
+- **Intégration à Rule Them'All** (API d'intégration 1.x, négociée sur les capacités) :
+  - Systèmes → **AI Them'All**, juste après Feuilles : cards de génération du Ruleset (Créer, ouvrir, dupliquer, activer, supprimer, réordonner), stockées par AI Them'All ; une card dont le champ cible a disparu est signalée.
+  - Bouton **Générer avec l'IA** sur les champs compatibles des feuilles RTA (MJ seulement) : choix de la card, précisions, génération, retouche ou choix de la variante, puis écriture par `updateTarget` ; refus si le champ a changé entre-temps.
+  - Panneau **Décris ta règle (IA)** dans l'assistant : l'IA choisit un parcours et remplit ses réponses, `plan` les vérifie (deux corrections au plus), puis le parcours s'ouvre rempli dans l'assistant ; le MJ applique depuis l'aperçu. Ce qui est envoyé est montré avant le premier envoi.
+- Génération de texte (Claude, API compatible OpenAI, Ollama) et d'images (API compatible OpenAI), images enregistrées dans le dossier du monde.
+
 ## 0.1.1
 
 - Fenêtre « Fournisseur d'IA » (Paramètres du module → Configurer) : fournisseur, adresse, clé API, bouton **Tester la connexion**.

@@ -70,12 +70,96 @@
         "network": "Service injoignable. Vérifiez l'adresse ; pour Ollama, autorisez l'origine de Foundry (variable OLLAMA_ORIGINS). {detail}",
         "auth": "Clé API refusée par le service ({detail}).",
         "http": "Le service a répondu par une erreur ({detail}).",
-        "badResponse": "Réponse inattendue : l'adresse ne semble pas être celle de ce type de service."
+        "badResponse": "Réponse inattendue : l'adresse ne semble pas être celle de ce type de service.",
+        "noModel": "Aucun modèle choisi pour ce service : ouvrez la fenêtre Fournisseur d'IA.",
+        "noImageGeneration": "Ce service ne sait pas générer d'images : choisissez un service compatible OpenAI pour les images."
       },
       "TextSection": "Texte",
       "ImageSection": "Images",
       "ConnectedImage": "Connecté : {image} modèle(s) image.",
       "ClaudeNoImages": "Claude ne génère pas d'images : décochez « Même service que le texte » pour choisir un service d'images."
+    },
+    "Section": {
+      "Title": "AI Them'All"
+    },
+    "Card": {
+      "EditorTitle": "Card de génération",
+      "Name": "Nom",
+      "Kind": "Génère",
+      "Kinds": {
+        "text": "Texte",
+        "image": "Image"
+      },
+      "Target": "Champ cible",
+      "TargetHint": "Un champ précis d'une feuille, ou tout champ du même type.",
+      "AnyField": {
+        "text": "Tout champ texte",
+        "image": "Tout champ image"
+      },
+      "MissingField": "Champ disparu de la feuille",
+      "Slot": {
+        "headerImg": "Image de l'en-tête",
+        "headerName": "Nom",
+        "templateImage": "Image du modèle de Contenu"
+      },
+      "AutoSheet": {
+        "actor": "Feuille AUTO (Actor)",
+        "item": "Feuille AUTO (Item)"
+      },
+      "Prompt": "Instructions",
+      "PromptHint": {
+        "text": "Ce que l'IA doit écrire. Seuls ces mots, les précisions du MJ et le nom du document sont envoyés.",
+        "image": "Ce que l'image doit montrer, et son style."
+      },
+      "UseCurrent": "Reprendre le contenu actuel",
+      "UseCurrentHint": "Envoie aussi le texte déjà présent dans le champ, pour l'améliorer plutôt que repartir de zéro.",
+      "Variants": "Variantes",
+      "Description": "Description",
+      "Enabled": "Active",
+      "NewName": "Nouvelle card",
+      "CopySuffix": " (copie)",
+      "Invalid": "Le champ cible n'existe plus ou a changé de type : choisissez-en un autre."
+    },
+    "Generate": {
+      "Action": "Générer avec l'IA",
+      "Title": "Générer avec l'IA",
+      "Card": "Card",
+      "Extra": "Précisions (facultatif)",
+      "Busy": "Génération en cours…",
+      "Generate": "Générer",
+      "Again": "Relancer",
+      "Validate": "Valider",
+      "Cancel": "Annuler",
+      "Result": "Résultat",
+      "ResultHint": "Vous pouvez retoucher le texte avant de valider.",
+      "Variant": "Variante {n}",
+      "Original": "Image actuelle :",
+      "Conflict": "Le champ a changé depuis l'ouverture de cette fenêtre : rien n'a été écrit. Relancez.",
+      "Written": "Champ mis à jour.",
+      "WrittenDraft": "Champ mis à jour dans le brouillon du Ruleset.",
+      "UploadFailed": "L'image n'a pas pu être enregistrée dans le monde."
+    },
+    "Designer": {
+      "Title": "Décris ta règle (IA)",
+      "Intro": "Décris une règle en français : l'IA choisit un parcours et remplit ses réponses. Tu vérifies l'aperçu et tu cliques Appliquer ; rien n'est écrit avant.",
+      "Placeholder": "Ex. : Rafale de 1, 2 ou 3 séquences de 3 balles, +2 si la séquence tient dans les attaques par round…",
+      "Propose": "Proposer",
+      "Empty": "Décris d'abord ta règle.",
+      "Choosing": "Choix du parcours…",
+      "Filling": "Remplissage des réponses…",
+      "Retrying": "Correction après refus de l'assistant (essai {attempt})…",
+      "Review": "Vérifie l'aperçu ci-dessous, puis clique Appliquer.",
+      "Question": "L'IA a besoin d'une précision :",
+      "NoPath": "Aucun parcours de l'assistant n'exprime cette règle.",
+      "Invalid": "L'assistant refuse encore la proposition après deux corrections ; les réponses sont dans le formulaire pour que tu les corriges :",
+      "ReadOnly": "Ce Ruleset est validé : l'assistant est en lecture seule.",
+      "GMOnly": "Réservé au MJ.",
+      "ConsentTitle": "Envoi à l'IA",
+      "ConsentIntro": "Pour proposer des parcours, AI Them'All envoie au service d'IA configuré :",
+      "ConsentText": "ton texte :",
+      "ConsentCatalog": "la liste des {count} parcours de l'assistant et leurs questions ;",
+      "ConsentEntries": "les noms et identifiants des entrées du Ruleset que le parcours choisi peut réutiliser.",
+      "ConsentNever": "Rien d'autre ne sort du monde : jamais les fiches des personnages. Cette question n'est posée qu'une fois dans ce navigateur."
     }
   }
 }
