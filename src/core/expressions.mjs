@@ -16,10 +16,11 @@ export const EXPRESSION_GUIDE = [
   '{"type": "reference", "reference": {"objectKind": "definition", "objectId": "<id de la définition>", "capabilityId": "value", "outputId": "value.final"}} pour la valeur d\'une définition (capabilityId "pool" et outputId "pool.current" pour une réserve) ;',
   '{"type": "context", "path": "variables.test.margin"} pour le résultat d\'un test en cours : variables.test.total (total du jet), variables.test.natural (dé naturel), variables.test.margin (écart au DD, positif si réussi), variables.test.inputs.difficulty (DD).',
   '{"type": "context", "path": "variables.input.<id>"} pour une valeur choisie au lancement d\'une action (une entrée de l\'action, par exemple variables.input.sequences pour un nombre de séquences) ; si l\'entrée n\'existe pas encore, choisis son id toi-même : l\'étape qui crée l\'action la déclarera avec cet id.',
+  '{"type": "contentField", "field": "<id du champ>"} pour un champ du Contenu depuis lequel l\'action est utilisée (par exemple les munitions de l\'arme) ; ajoute "default": {"type": "literal", "value": 0} si le Contenu peut ne pas l\'avoir. Un champ de Contenu n\'est pas une définition : il se lit ainsi et ne se crée jamais.',
   'Opérations : {"type": "add"|"subtract"|"multiply"|"divide"|"min"|"max", "args": [nœuds]} ; {"type": "floor"|"ceil"|"round", "value": nœud} ;',
   '{"type": "gt"|"gte"|"lt"|"lte"|"eq"|"neq", "left": nœud, "right": nœud} ; {"type": "and"|"or", "args": [nœuds]} ; {"type": "if", "condition": nœud, "then": nœud, "else": nœud} ;',
   '{"type": "clamp", "value": nœud, "min": nœud, "max": nœud}.',
-  "N'utilise aucun autre type. Chaque référence doit nommer une définition de la liste des entrées existantes ou créée par une étape précédente."
+  "N'utilise aucun autre type. Chaque contentField doit nommer un champ de la liste des champs des Contenus. Chaque référence doit nommer une définition de la liste des entrées existantes ou créée par une étape précédente."
 ].join("\n");
 
 const isNode = value => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -35,6 +36,8 @@ export function checkExpression(node, path = "") {
     if (type === "literal" && (isNode(node.value) || Array.isArray(node.value) || node.value === undefined)) out.push({ path, code: "LITERAL", detail: "Un literal a une valeur simple (nombre, texte ou booléen)." });
     if ((type === "parameter" || type === "formula") && !node.id) out.push({ path, code: "NO_ID", detail: `Un nœud ${type} a besoin d'un id.` });
     if (type === "reference" && (!node.reference?.objectKind || !node.reference?.objectId)) out.push({ path, code: "REFERENCE_UNSET", detail: "Une référence a besoin de reference.objectKind et reference.objectId." });
+    if (type === "contentField" && !String(node.field ?? "").trim()) out.push({ path, code: "NO_FIELD", detail: "Un nœud contentField a besoin du field (id d'un champ de Contenu)." });
+    if (type === "contentField" && node.default !== undefined && (node.default?.type !== "literal" || isNode(node.default.value) || Array.isArray(node.default.value))) out.push({ path, code: "FIELD_DEFAULT", detail: "Le default d'un contentField est un nœud literal." });
     if (type === "context" && !node.path) out.push({ path, code: "NO_PATH", detail: "Un nœud context a besoin d'un path." });
     return out;
   }

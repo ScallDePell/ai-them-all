@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.7
+
+- Concepteur de règles : l'IA reçoit la liste des champs des Types de Contenu (ex. Munitions d'une Arme). Elle les lit dans une formule ou une condition avec un nœud `contentField` et les modifie avec un effet « champ du Contenu », au lieu de demander une définition de réserve qui n'existe pas.
+- Un nœud `contentField` sans champ, ou avec une valeur par défaut mal formée, est renvoyé à l'IA avant d'atteindre l'assistant.
+
 ## 0.2.6
 
 - Concepteur de règles : pour découper la règle, l'IA voit ce que chaque parcours accepte (questions, types, entrées acceptées). Elle ne choisit plus un parcours incapable d'exprimer la règle (par exemple « Coût », qui ne dépense qu'une réserve de l'acteur d'une quantité fixe, pour des munitions d'arme dépendant du nombre de séquences).

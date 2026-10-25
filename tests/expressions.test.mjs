@@ -24,3 +24,10 @@ test("only formula and condition answers are checked, list rows included", () =>
   const problems = checkExpressionAnswers(questions, { name: "{", expression: height, variants: [{ when: { type: "gt", left: height } }] });
   assert.deepEqual(problems.map(p => p.path), ["variants.0.when.right"]);
 });
+
+test("a weapon's ammunition is read as a Content field, which needs its field id", () => {
+  const enough = { type: "gte", left: { type: "contentField", field: "ammo", default: { type: "literal", value: 0 } }, right: { type: "formula", id: "burstRounds" } };
+  assert.deepEqual(checkExpression(enough), []);
+  assert.deepEqual(checkExpression({ type: "contentField", field: " " }).map(p => p.code), ["NO_FIELD"]);
+  assert.deepEqual(checkExpression({ type: "contentField", field: "ammo", default: 0 }).map(p => p.code), ["FIELD_DEFAULT"]);
+});

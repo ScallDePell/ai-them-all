@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../core/constants.mjs";
 import { describeServiceStatus } from "../core/provider-status.mjs";
-import { catalogSummary, collectInventory, fillStep, planSteps } from "../core/rules-designer.mjs";
+import { catalogSummary, collectInventory, fillStep, listContentFields, planSteps } from "../core/rules-designer.mjs";
 import { generateText } from "../core/generation.mjs";
 import { resolveServices } from "../core/settings-schema.mjs";
 import { esc, errorMessage, t } from "./html.mjs";
@@ -42,7 +42,7 @@ export function renderRulesPanel(element, assistant) {
   const stepsList = element.querySelector("[data-ata-steps]");
   const status = element.querySelector("[data-ata-status]");
   const next = element.querySelector("[data-ata-next]");
-  const run = { description: "", steps: [], index: -1, done: [], last: null, busy: false, service: null, catalog: null, inventory: [], clarifications: [], pending: null };
+  const run = { description: "", steps: [], index: -1, done: [], last: null, busy: false, service: null, catalog: null, inventory: [], contentFields: [], clarifications: [], pending: null };
 
   const show = (html, kind = "") => { status.innerHTML = html ? `<p class="ata-status ${kind}">${html}</p>` : ""; };
   const busy = text => show(`<i class="fa-solid fa-spinner fa-spin"></i> ${esc(text)}`);
@@ -83,7 +83,7 @@ export function renderRulesPanel(element, assistant) {
     drawNext([]);
     const step = run.steps[index];
     const result = await fillStep({
-      description: run.description, step, done: run.done, clarifications: run.clarifications, catalog: run.catalog, generate,
+      description: run.description, step, done: run.done, clarifications: run.clarifications, contentFields: run.contentFields, catalog: run.catalog, generate,
       describePath: (pathId, answers) => assistant.describePath(pathId, answers),
       plan: (pathId, answers) => assistant.plan(pathId, answers),
       onAttempt: attempt => busy(t(attempt ? "Designer.Retrying" : "Designer.Filling", { attempt, n: index + 1, total: run.steps.length }))
@@ -105,6 +105,11 @@ export function renderRulesPanel(element, assistant) {
     }
   }
 
+  // The Content Types' fields, read through Rule Them'All's stable configurator API; none when it cannot say.
+  function readContentFields() {
+    try { return listContentFields(game.ruleThemAll?.configurator?.getRuleset?.(assistant.versionId)); } catch { return []; }
+  }
+
   async function start() {
     const description = textarea.value.trim();
     if (!description) return show(t("Designer.Empty"), "error");
@@ -116,6 +121,7 @@ export function renderRulesPanel(element, assistant) {
     Object.assign(run, { description, steps: [], index: -1, done: [], last: null, clarifications: [], pending: null });
     busy(t("Designer.Inventory"));
     run.inventory = await collectInventory(run.catalog, (pathId, answers) => assistant.describePath(pathId, answers));
+    run.contentFields = readContentFields();
     await split();
   }
 
@@ -125,7 +131,7 @@ export function renderRulesPanel(element, assistant) {
     drawSteps();
     drawNext([]);
     busy(t("Designer.Choosing", { count: run.inventory.length }));
-    const result = await planSteps({ description: run.description, catalog: run.catalog, inventory: run.inventory, clarifications: run.clarifications, generate });
+    const result = await planSteps({ description: run.description, catalog: run.catalog, inventory: run.inventory, contentFields: run.contentFields, clarifications: run.clarifications, generate });
     if (result.status === "question") return ask(result.question, "steps");
     if (result.status === "noPath") return show(`${esc(t("Designer.NoPath"))} ${esc(result.reason)}`, "error");
     if (result.status === "unusable") return show(esc(t("Designer.Unusable", { reason: result.reason })), "error");

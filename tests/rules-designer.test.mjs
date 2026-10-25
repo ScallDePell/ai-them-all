@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { collectInventory, fillStep, parseJsonAnswer, planSteps } from "../src/core/rules-designer.mjs";
+import { collectInventory, fillStep, listContentFields, parseJsonAnswer, planSteps } from "../src/core/rules-designer.mjs";
 
 const catalog = {
   answerFormats: { integer: "A whole number." },
@@ -140,4 +140,21 @@ test("each path is summarized with what its questions accept", async () => {
     { id: "rows", kind: "list", fields: [{ id: "f", kind: "formula" }] }
   ] }] });
   assert.deepEqual(cost.questions, ["resource:entry<definitions/pool>", "amount:number", "writes:choice(definition|contentField)", "rows:list[f:formula]"]);
+});
+
+test("the Content Types' fields go with both requests, as fields read by contentField and never created", async () => {
+  const ruleset = { contentTypes: [
+    { id: "weapon", nameKey: "Arme", fields: { ammo: { name: "Munitions", type: "number" }, damage: { name: "Dégâts" } } },
+    { id: "gear", fields: { ammo: { name: "Munitions" } } }
+  ] };
+  const contentFields = listContentFields(ruleset);
+  assert.deepEqual(contentFields.map(f => [f.id, f.contentTypes]), [["ammo", ["Arme", "gear"]], ["damage", ["Arme"]]]);
+  assert.deepEqual(listContentFields(null), []);
+  const steps = scripted(['{"steps": [{"pathId": "value", "goal": "Total"}]}']);
+  await planSteps({ description: "Rafale", catalog, contentFields, generate: steps.generate });
+  assert.match(steps.prompts[0].prompt, /contentField[\s\S]*"id":"ammo"/);
+  const fill = scripted(['{"answers": {}}']);
+  await fillStep({ description: "Rafale", step: { pathId: "test", goal: "Condition" }, contentFields, catalog, generate: fill.generate,
+    describePath: async () => ({ id: "test" }), plan: async () => ({ valid: true }) });
+  assert.match(fill.prompts[0].prompt, /ne se créent jamais[\s\S]*"name":"Munitions"/);
 });

@@ -57,10 +57,26 @@ export async function collectInventory(catalog, describePath) {
   return [...found.values()].slice(0, INVENTORY_LIMIT);
 }
 
+/** The fields of the Ruleset's Content Types, once each by id: what a contentField operand reads and an Effect may write. */
+export function listContentFields(ruleset) {
+  const fields = new Map();
+  for (const type of ruleset?.contentTypes ?? []) {
+    for (const [id, field] of Object.entries(type?.fields ?? {})) {
+      const entry = fields.get(id) ?? { id, name: field?.name || id, type: field?.type ?? field?.valueType ?? null, contentTypes: [] };
+      entry.contentTypes.push(type.nameKey || type.id);
+      fields.set(id, entry);
+    }
+  }
+  return [...fields.values()].slice(0, INVENTORY_LIMIT);
+}
+
+const FIELDS_NOTE = "Champs des Contenus (objets, armes…) : une formule ou une condition les lit avec un nœud contentField (champ du Contenu depuis lequel l'action est utilisée), un effet les modifie avec writes contentField. Ce ne sont pas des définitions ni des réserves de l'acteur : ils ne se créent jamais par une étape";
+const fieldsBlock = contentFields => contentFields?.length ? `${FIELDS_NOTE} (id, nom, type, Types de Contenu) :\n${JSON.stringify(contentFields)}` : "";
+
 const clarified = clarifications => clarifications?.length
   ? `Précisions du MJ, en réponse à tes questions :\n${clarifications.map(c => `- ${c.question} → ${c.answer}`).join("\n")}` : "";
 
-export function buildStepsPrompt(description, summary, inventory = [], previous = null, clarifications = []) {
+export function buildStepsPrompt(description, summary, inventory = [], previous = null, clarifications = [], contentFields = []) {
   const retry = previous ? [`Ta réponse précédente n'a pas pu être utilisée : ${previous}. Réponds de nouveau avec un seul objet JSON valide.`] : [];
   return {
     system: SYSTEM,
@@ -69,6 +85,7 @@ export function buildStepsPrompt(description, summary, inventory = [], previous 
       ...[clarified(clarifications)].filter(Boolean),
       `Parcours disponibles :\n${JSON.stringify(summary)}`,
       `Entrées qui existent déjà dans le Ruleset (collection, id, nom) :\n${JSON.stringify(inventory)}`,
+      ...[fieldsBlock(contentFields)].filter(Boolean),
       "Découpe cette règle en une liste ordonnée d'étapes, une par parcours. Une règle complexe se construit en combinant plusieurs parcours (briques comme formula, condition, cost, action, et parcours comme test ou attack) : réponds none seulement si aucune combinaison ne convient.",
       "Utilise exactement les id de parcours de la liste (champ id), jamais leur titre.",
       "Chaque parcours liste ses questions (id:type<ce qu'une entrée accepte>) : choisis un parcours seulement si ses questions peuvent exprimer cette partie de la règle (par exemple, une question number n'accepte qu'un nombre fixe, pas un calcul ; une entrée <definitions/pool> est une réserve de l'acteur, pas un champ d'un Contenu).",
@@ -85,13 +102,14 @@ export function buildStepsPrompt(description, summary, inventory = [], previous 
   };
 }
 
-export function buildFillPrompt(description, path, { answerFormats = {}, goal = "", done = [], previous = null, clarifications = [] } = {}) {
+export function buildFillPrompt(description, path, { answerFormats = {}, goal = "", done = [], previous = null, clarifications = [], contentFields = [] } = {}) {
   const lines = [
     `Règle décrite par le MJ :\n${description.trim()}`,
     clarified(clarifications),
     goal && `Étape à remplir maintenant : ${goal}`,
     done.length && `Étapes déjà appliquées et entrées qu'elles ont créées (réutilise leurs id) :\n${JSON.stringify(done)}`,
     `Parcours de cette étape (questions, choix possibles et entrées existantes du Ruleset) :\n${JSON.stringify(path)}`,
+    fieldsBlock(contentFields),
     `Format des réponses selon le type de question :\n${JSON.stringify(answerFormats)}`,
     hasExpressionQuestion(path?.questions) && EXPRESSION_GUIDE,
     "Réutilise les entrées existantes quand elles conviennent. Si une entrée manque et que la question permet create, crée-la avec {\"create\": {...}} plutôt que de poser une question.",
@@ -125,12 +143,12 @@ export function parseJsonAnswer(text) {
  * {status: "steps", steps: [{pathId, goal, reuses}], explanation} | {status: "question", question} | {status: "noPath", reason}
  * | {status: "unusable", reason} when the AI's answer could not be read, even after one more try.
  */
-export async function planSteps({ description, catalog, inventory = [], clarifications = [], generate, maxRetries = 1 }) {
+export async function planSteps({ description, catalog, inventory = [], contentFields = [], clarifications = [], generate, maxRetries = 1 }) {
   const summary = catalogSummary(catalog);
   const known = new Set(summary.map(path => path.id));
   let previous = null, reason = "";
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory, previous, clarifications)));
+    const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory, previous, clarifications, contentFields)));
     if (answer?.question) return { status: "question", question: String(answer.question) };
     if (answer?.none !== undefined && !answer?.steps) return { status: "noPath", reason: String(answer.none || "") };
     const proposed = Array.isArray(answer?.steps) ? answer.steps : null;
@@ -160,13 +178,13 @@ export async function planSteps({ description, catalog, inventory = [], clarific
  * {status: "planned", pathId, answers, plan, warnings, explanation} | {status: "question", question}
  * | {status: "invalid", pathId, answers, errors, openable}.
  */
-export async function fillStep({ description, step, done = [], clarifications = [], catalog, describePath, plan, generate, maxRetries = MAX_RETRIES, onAttempt = () => {} }) {
+export async function fillStep({ description, step, done = [], clarifications = [], contentFields = [], catalog, describePath, plan, generate, maxRetries = MAX_RETRIES, onAttempt = () => {} }) {
   const { pathId, goal } = step;
   const path = await describePath(pathId, {});
   let previous = null;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     onAttempt(attempt);
-    const filled = parseJsonAnswer(await generate(buildFillPrompt(description, path, { answerFormats: catalog?.answerFormats, goal, done, previous, clarifications })));
+    const filled = parseJsonAnswer(await generate(buildFillPrompt(description, path, { answerFormats: catalog?.answerFormats, goal, done, previous, clarifications, contentFields })));
     if (filled?.question) return { status: "question", question: String(filled.question) };
     const answers = filled?.answers && typeof filled.answers === "object" ? filled.answers : null;
     if (!answers) {
