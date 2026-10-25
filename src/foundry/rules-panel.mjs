@@ -115,6 +115,7 @@ export function renderRulesPanel(element, assistant) {
     const result = await planSteps({ description, catalog: run.catalog, inventory, generate });
     if (result.status === "question") return show(`${esc(t("Designer.Question"))} ${esc(result.question)} ${esc(t("Designer.AnswerInText"))}`);
     if (result.status === "noPath") return show(`${esc(t("Designer.NoPath"))} ${esc(result.reason)}`, "error");
+    if (result.status === "unusable") return show(esc(t("Designer.Unusable", { reason: result.reason })), "error");
     run.steps = result.steps;
     drawSteps();
     show(`${esc(result.explanation)} ${esc(t("Designer.ReviewSteps"))}`);

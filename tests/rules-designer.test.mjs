@@ -23,8 +23,7 @@ test("JSON is read inside a fence or surrounded by words", () => {
 test("a missing entry becomes a step before the one that uses it", async () => {
   const { prompts, generate } = scripted([JSON.stringify({ steps: [
     { pathId: "value", goal: "Créer la définition Hauteur du socle Humain" },
-    { pathId: "test", goal: "Test de saut en hauteur" },
-    { pathId: "unknown", goal: "ignorée" }
+    { pathId: "test", goal: "Test de saut en hauteur" }
   ] })]);
   const result = await planSteps({ description: "Saut en hauteur, la taille reste à définir", catalog, generate });
   assert.equal(result.status, "steps");
@@ -34,7 +33,9 @@ test("a missing entry becomes a step before the one that uses it", async () => {
 
 test("no known path, an explicit none, or a question about a rule value", async () => {
   assert.deepEqual(await planSteps({ description: "x", catalog, generate: scripted(['{"none": "Pas de repos."}']).generate }), { status: "noPath", reason: "Pas de repos." });
-  assert.equal((await planSteps({ description: "x", catalog, generate: scripted(['{"steps": [{"pathId": "nope"}]}']).generate })).status, "noPath");
+  const unknown = await planSteps({ description: "x", catalog, generate: scripted(['{"steps": [{"pathId": "nope"}]}', '{"steps": [{"pathId": "Valeur"}]}']).generate });
+  assert.equal(unknown.status, "unusable");
+  assert.match(unknown.reason, /"Valeur"/);
   assert.deepEqual(await planSteps({ description: "x", catalog, generate: scripted(['{"question": "Quel dé ?"}']).generate }), { status: "question", question: "Quel dé ?" });
 });
 
@@ -109,4 +110,13 @@ test("warnings get one more try, and are kept on the last one", async () => {
   assert.equal(plans, 3);
   assert.equal(result.status, "planned");
   assert.equal(result.warnings.length, 1);
+});
+
+test("an unreadable or unknown-path answer gets one more try with the reason", async () => {
+  const { prompts, generate } = scripted(['{"steps": [{"pathId": "Test d\'attaque"}', '{"steps": [{"pathId": "nope"}]}', '{"steps": [{"pathId": "test", "goal": "Test"}]}']);
+  const garbled = await planSteps({ description: "Rafale", catalog, generate });
+  assert.equal(garbled.status, "unusable");
+  assert.match(prompts[1].prompt, /pas un objet JSON/);
+  const fixed = await planSteps({ description: "Rafale", catalog, generate: scripted(['{"steps": [{"pathId": "Test"}]}', '{"steps": [{"pathId": "test", "goal": "Test"}]}']).generate });
+  assert.equal(fixed.status, "steps");
 });

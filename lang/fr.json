@@ -171,7 +171,8 @@
       "Skip": "Passer cette étape",
       "Reuses": "réutilise",
       "InvalidNotOpened": "L'IA n'a pas réussi à écrire une formule valable après deux corrections ; rien n'a été ouvert dans l'assistant. Refais l'étape ou précise la règle :",
-      "Warnings": "Attention : l'aperçu signale {count} point(s) à compléter avant de publier."
+      "Warnings": "Attention : l'aperçu signale {count} point(s) à compléter avant de publier.",
+      "Unusable": "La réponse de l'IA n'a pas pu être utilisée, même après un second essai ({reason}). Relance Proposer ; si ça se répète, essaie un modèle plus capable."
     }
   }
 }

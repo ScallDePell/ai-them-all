@@ -47,14 +47,16 @@ export async function collectInventory(catalog, describePath) {
   return [...found.values()].slice(0, INVENTORY_LIMIT);
 }
 
-export function buildStepsPrompt(description, summary, inventory = []) {
+export function buildStepsPrompt(description, summary, inventory = [], previous = null) {
+  const retry = previous ? [`Ta réponse précédente n'a pas pu être utilisée : ${previous}. Réponds de nouveau avec un seul objet JSON valide.`] : [];
   return {
     system: SYSTEM,
     prompt: [
       `Règle décrite par le MJ :\n${description.trim()}`,
       `Parcours disponibles :\n${JSON.stringify(summary)}`,
       `Entrées qui existent déjà dans le Ruleset (collection, id, nom) :\n${JSON.stringify(inventory)}`,
-      "Découpe cette règle en une liste ordonnée d'étapes, une par parcours.",
+      "Découpe cette règle en une liste ordonnée d'étapes, une par parcours. Une règle complexe se construit en combinant plusieurs parcours (briques comme formula, condition, cost, action, et parcours comme test ou attack) : réponds none seulement si aucune combinaison ne convient.",
+      "Utilise exactement les id de parcours de la liste (champ id), jamais leur titre.",
       "Vérifie d'abord dans les entrées existantes : une entrée qui existe déjà (même sous un autre nom proche, ou un id équivalent) se réutilise et ne donne jamais d'étape de création.",
       "Si la règle a besoin d'une entrée absente de cette liste (une définition comme une taille ou une hauteur, un paramètre, une formule…), ajoute une étape qui la crée avant l'étape qui l'utilise : ne pose pas de question pour ça.",
       "Pour chaque étape, indique les entrées existantes qu'elle réutilise.",
@@ -62,7 +64,8 @@ export function buildStepsPrompt(description, summary, inventory = []) {
       "Réponds avec l'un de ces objets :",
       '{"steps": [{"pathId": "<id du parcours>", "goal": "<ce que crée cette étape, en une phrase>", "reuses": ["<id d\'entrée existante>"]}], "explanation": "<une phrase>"}',
       '{"none": "<pourquoi aucun parcours ne convient, et ce qu\'il faudrait ajouter à Rule Them\'All>"}',
-      '{"question": "<la valeur de règle à demander au MJ>"}'
+      '{"question": "<la valeur de règle à demander au MJ>"}',
+      ...retry
     ].join("\n\n")
   };
 }
@@ -103,18 +106,36 @@ export function parseJsonAnswer(text) {
 
 /**
  * Splits the rule into ordered steps, one assistant path each. Resolves with
- * {status: "steps", steps: [{pathId, goal}], explanation} | {status: "question", question} | {status: "noPath", reason}.
+ * {status: "steps", steps: [{pathId, goal, reuses}], explanation} | {status: "question", question} | {status: "noPath", reason}
+ * | {status: "unusable", reason} when the AI's answer could not be read, even after one more try.
  */
-export async function planSteps({ description, catalog, inventory = [], generate }) {
+export async function planSteps({ description, catalog, inventory = [], generate, maxRetries = 1 }) {
   const summary = catalogSummary(catalog);
-  const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory)));
-  if (answer?.question) return { status: "question", question: String(answer.question) };
   const known = new Set(summary.map(path => path.id));
-  const steps = (Array.isArray(answer?.steps) ? answer.steps : [])
-    .filter(step => known.has(step?.pathId))
-    .map(step => ({ pathId: step.pathId, goal: String(step.goal ?? ""), reuses: Array.isArray(step.reuses) ? step.reuses.map(String) : [] }));
-  if (!steps.length) return { status: "noPath", reason: String(answer?.none ?? "") };
-  return { status: "steps", steps, explanation: String(answer.explanation ?? "") };
+  let previous = null, reason = "";
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const answer = parseJsonAnswer(await generate(buildStepsPrompt(description, summary, inventory, previous)));
+    if (answer?.question) return { status: "question", question: String(answer.question) };
+    if (answer?.none !== undefined && !answer?.steps) return { status: "noPath", reason: String(answer.none || "") };
+    const proposed = Array.isArray(answer?.steps) ? answer.steps : null;
+    if (!proposed) {
+      reason = previous = "ce n'était pas un objet JSON avec steps";
+      continue;
+    }
+    const unknown = proposed.map(step => step?.pathId).filter(id => !known.has(id));
+    const steps = proposed.filter(step => known.has(step?.pathId))
+      .map(step => ({ pathId: step.pathId, goal: String(step.goal ?? ""), reuses: Array.isArray(step.reuses) ? step.reuses.map(String) : [] }));
+    if (unknown.length) {
+      reason = previous = `ces id de parcours n'existent pas : ${unknown.map(id => JSON.stringify(id ?? null)).join(", ")}`;
+      continue;
+    }
+    if (!steps.length) {
+      reason = previous = "la liste steps était vide";
+      continue;
+    }
+    return { status: "steps", steps, explanation: String(answer.explanation ?? "") };
+  }
+  return { status: "unusable", reason };
 }
 
 /**

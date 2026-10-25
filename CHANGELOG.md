@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4
+
+- Concepteur de règles : une réponse de l'IA illisible ou citant des parcours inconnus (un titre au lieu d'un id) repart une fois vers l'IA avec la raison ; si elle reste inutilisable, le panneau dit pourquoi au lieu de « Aucun parcours ».
+- L'IA est invitée à combiner plusieurs parcours (briques formule, condition, coût, action, test, attaque) avant de conclure qu'aucun ne convient.
+- Ollama : contexte élargi (32k), le catalogue de l'assistant n'est plus tronqué.
+
 ## 0.2.3
 
 - Concepteur de règles : l'IA reçoit la grammaire exacte des formules et conditions de Rule Them'All (nœuds, références à une définition, résultat du test en cours : `variables.test.margin`, DD…).

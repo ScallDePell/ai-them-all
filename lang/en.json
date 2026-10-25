@@ -171,7 +171,8 @@
       "Skip": "Skip this step",
       "Reuses": "reuses",
       "InvalidNotOpened": "The AI could not write a valid formula after two fixes; nothing was opened in the assistant. Redo the step or make the rule clearer:",
-      "Warnings": "Note: the preview lists {count} item(s) to complete before publishing."
+      "Warnings": "Note: the preview lists {count} item(s) to complete before publishing.",
+      "Unusable": "The AI's answer could not be used, even after a second try ({reason}). Propose again; if it happens again, try a more capable model."
     }
   }
 }

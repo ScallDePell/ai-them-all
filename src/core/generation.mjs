@@ -24,7 +24,9 @@ const TEXT = {
   [PROVIDERS.OLLAMA]: {
     path: "/api/chat",
     headers: () => ({}),
-    body: (model, { system, prompt }) => ({ model, stream: false, messages: [{ role: "system", content: system }, { role: "user", content: prompt }] }),
+    // Ollama's default context is short and cuts long requests (the rules designer's catalog) silently.
+    body: (model, { system, prompt, maxTokens }) => ({ model, stream: false, options: { num_ctx: 32768, num_predict: maxTokens },
+      messages: [{ role: "system", content: system }, { role: "user", content: prompt }] }),
     read: body => body?.message?.content ?? null
   }
 };
