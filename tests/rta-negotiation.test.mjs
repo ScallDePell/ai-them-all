@@ -23,8 +23,16 @@ test("a missing capability stays standalone and names it", () => {
   assert.deepEqual(result.missing, ["fieldTargets"]);
 });
 
-test("an older Rule Them'All without apiVersion stays standalone quietly", () => {
+test("an integrations object without apiVersion nor capabilities stays standalone quietly", () => {
   assert.deepEqual(negotiateIntegration({ capabilities: "all" }), { mode: "standalone", reason: "notExposed" });
+});
+
+test("capabilities without apiVersion are negotiated on capabilities alone", () => {
+  const integrations = { capabilities: ["cardHost", "assistantPanels"] };
+  const result = negotiateIntegration(integrations, ["cardHost"]);
+  assert.equal(result.mode, "integrated");
+  assert.equal(result.unversioned, true);
+  assert.equal(negotiateIntegration(integrations, ["fieldTargets"]).reason, "capabilities");
 });
 
 test("a malformed apiVersion stays standalone", () => {

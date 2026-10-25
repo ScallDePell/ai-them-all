@@ -3,6 +3,7 @@
 ## Non publié
 
 - Un Rule Them'All sans API d'intégration (avant 1.1.0) n'affiche plus d'avertissement : simple information dans la console, mode autonome.
+- Un Rule Them'All qui expose `integrations.capabilities` sans `apiVersion` est reconnu : la négociation se fait sur les capacités seules.
 
 ## 0.1.0
 
