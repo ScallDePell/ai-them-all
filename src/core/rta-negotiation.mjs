@@ -7,7 +7,8 @@ import { RTA_SUPPORTED_MAJOR } from "./constants.mjs";
 export function negotiateIntegration(integrations, requiredCapabilities = []) {
   if (!integrations) return { mode: "standalone", reason: "absent" };
   const apiVersion = typeof integrations.apiVersion === "string" ? integrations.apiVersion : null;
-  const major = Number.parseInt(apiVersion?.split(".")[0], 10);
+  if (!apiVersion) return { mode: "standalone", reason: "notExposed" };
+  const major = Number.parseInt(apiVersion.split(".")[0], 10);
   if (major !== RTA_SUPPORTED_MAJOR) return { mode: "standalone", reason: "apiVersion", apiVersion };
   const capabilities = Array.isArray(integrations.capabilities) ? integrations.capabilities : [];
   const missing = requiredCapabilities.filter(c => !capabilities.includes(c));

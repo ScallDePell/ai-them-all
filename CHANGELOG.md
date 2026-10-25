@@ -1,5 +1,9 @@
 # Changelog
 
+## Non publié
+
+- Un Rule Them'All sans API d'intégration (avant 1.1.0) n'affiche plus d'avertissement : simple information dans la console, mode autonome.
+
 ## 0.1.0
 
 - Squelette du module Foundry VTT v14, sans dépendance à Rule Them'All.

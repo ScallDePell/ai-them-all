@@ -10,8 +10,10 @@ export function integrationState() {
 function connect(integrations) {
   if (!integrations || state.mode === "integrated") return;
   state = negotiateIntegration(integrations);
-  if (state.mode === "standalone") {
-    console.warn(`AI Them'All | Rule Them'All integration unavailable (${state.reason}), staying standalone`, state);
+  if (state.reason === "notExposed") {
+    console.info("AI Them'All | Rule Them'All found without its integration API (needs 1.1.0 or later), standalone mode");
+  } else if (state.mode === "standalone") {
+    console.warn(`AI Them'All | Rule Them'All integration API incompatible (${state.reason}), standalone mode`, state);
   }
 }
 

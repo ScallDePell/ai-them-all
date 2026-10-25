@@ -23,6 +23,10 @@ test("a missing capability stays standalone and names it", () => {
   assert.deepEqual(result.missing, ["fieldTargets"]);
 });
 
-test("a malformed API stays standalone", () => {
-  assert.equal(negotiateIntegration({ capabilities: "all" }).mode, "standalone");
+test("an older Rule Them'All without apiVersion stays standalone quietly", () => {
+  assert.deepEqual(negotiateIntegration({ capabilities: "all" }), { mode: "standalone", reason: "notExposed" });
+});
+
+test("a malformed apiVersion stays standalone", () => {
+  assert.equal(negotiateIntegration({ apiVersion: "x.y" }).reason, "apiVersion");
 });
