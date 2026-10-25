@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.9
+
+- Concepteur de règles : l'étape devient **Créer ou configurer un Modèle de Contenu**. Si le Modèle nommé (ex. « Fusil d'assaut ») n'existe pas, elle le crée dans son Type de Contenu (existant, ou créé par une étape précédente), avec ses actions et ses valeurs de champs. Toujours rien d'écrit avant **Appliquer au Contenu**.
+- Quand une partie de la règle est impossible, l'IA propose quand même les étapes des autres parties et dit ce qui manque, au lieu de tout refuser.
+
 ## 0.2.8
 
 - Concepteur de règles : nouvelle étape **Configurer un Contenu existant**. L'IA peut donner une action à un Modèle de Contenu qui existe déjà (ex. « Tir en rafale » au « Fusil d'assaut ») et régler les valeurs de ses champs. Le panneau montre les changements ; rien n'est écrit avant le clic sur **Appliquer au Contenu** (API stable `updateContentTemplate` de Rule Them'All).

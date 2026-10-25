@@ -59,3 +59,22 @@ test("the AI sees the configure-content step among the paths, with the templates
   assert.deepEqual(result.steps.map(s => s.pathId), ["action", CONTENT_PATH_ID]);
   assert.match(prompts[0].prompt, new RegExp(`${CONTENT_PATH_ID}[\\s\\S]*"id":"fusil-assaut"`));
 });
+
+test("a template the Ruleset lacks is created in its Content Type, found even misspelled", () => {
+  const change = planContentChange(ruleset(), { template: "Fusil d'assaut lourd", create: { name: "Fusil d'assaut lourd", contentType: "Armes" }, grant: ["tir-rafale"], fields: { munitions: 40 } });
+  assert.equal(change.valid, true);
+  assert.equal(change.create, true);
+  assert.deepEqual(change.entry, { id: "fusil-d-assaut-lourd", nameKey: "Fusil d'assaut lourd", contentTypeId: "arme", data: { munitions: 40 },
+    relations: [{ id: "grant-tir-rafale", operation: "grant", targetRef: { objectKind: "action", objectId: "tir-rafale" } }] });
+  const empty = { contentTypes: [], contentTemplates: [], actions: [] };
+  assert.deepEqual(planContentChange(empty, { template: "Fusil", create: { name: "Fusil", contentType: "arme" } }).errors.map(e => e.code), ["CONTENT_TYPE"]);
+});
+
+test("in an empty Ruleset the step creates the template once its Content Type exists", async () => {
+  const fresh = () => ({ contentTypes: [{ id: "arme", nameKey: "Arme", fields: { munitions: {} } }], contentTemplates: [], actions: [{ id: "tir-rafale", nameKey: "Tir en rafale" }] });
+  const { prompts, generate } = scripted(['{"template": "Fusil d\'assaut", "create": {"name": "Fusil d\'assaut", "contentType": "arme"}, "grant": ["tir-rafale"]}']);
+  const result = await fillContentStep({ description: "Rafale", step: { pathId: CONTENT_PATH_ID, goal: "Fusil" }, readRuleset: fresh, generate });
+  assert.equal(result.status, "planned");
+  assert.equal(result.change.entry.id, "fusil-d-assaut");
+  assert.match(prompts[0].prompt, /Types de Contenu du Ruleset[\s\S]*"id":"arme"/);
+});

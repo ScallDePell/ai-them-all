@@ -179,10 +179,11 @@
       "ContentGrant": "gives the action {action}",
       "ContentField": "{field}: {from} → {to}",
       "ContentApply": "Apply to the Content",
-      "ContentApplied": "\"{name}\" is configured.",
+      "ContentApplied": "\"{name}\" is ready.",
       "ContentFailed": "Rule Them'All refused the change:",
       "ContentInvalid": "The AI could not configure this Content:",
-      "ContentUnavailable": "Rule Them'All does not let this panel read or change Contents (no configurator API)."
+      "ContentUnavailable": "Rule Them'All does not let this panel read or change Contents (no configurator API).",
+      "ContentCreate": "creates the template \"{name}\" (type {type})"
     }
   }
 }

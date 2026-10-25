@@ -179,10 +179,11 @@
       "ContentGrant": "donne l'action {action}",
       "ContentField": "{field} : {from} → {to}",
       "ContentApply": "Appliquer au Contenu",
-      "ContentApplied": "« {name} » est configuré.",
+      "ContentApplied": "« {name} » est prêt.",
       "ContentFailed": "Rule Them'All a refusé la modification :",
       "ContentInvalid": "L'IA n'a pas réussi à configurer ce Contenu :",
-      "ContentUnavailable": "Rule Them'All ne permet pas de lire ou modifier les Contenus ici (API du configurateur absente)."
+      "ContentUnavailable": "Rule Them'All ne permet pas de lire ou modifier les Contenus ici (API du configurateur absente).",
+      "ContentCreate": "crée le Modèle « {name} » (type {type})"
     }
   }
 }

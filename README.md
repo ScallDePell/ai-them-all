@@ -63,7 +63,7 @@ Quand RTA est actif et expose une API d'intégration compatible, ATA :
 - lit les sources (y compris les **observations narratives** : les mots de l'échelle de description, jamais le nombre) en respectant Permissions, `seenBy` et `visibleIf` ;
 - écrit les cibles via les services RTA (transactions, journal, relais MJ) après validation côté service ;
 - place son icône dans l'emplacement d'action que RTA rend lui-même sur chaque champ compatible ;
-- propose un **concepteur de règles** dans l'assistant de Ruleset quand RTA expose l'API de l'assistant (API 1.1.0) : le MJ décrit une règle en français, l'IA remplit les parcours, l'assistant valide et montre l'aperçu, le MJ clique pour appliquer. Il peut aussi configurer un Modèle de Contenu existant (donner une action à une arme, régler ses champs) : le panneau montre les changements et les écrit par l'API stable du configurateur quand le MJ clique sur Appliquer au Contenu. L'IA n'écrit jamais directement dans un Ruleset.
+- propose un **concepteur de règles** dans l'assistant de Ruleset quand RTA expose l'API de l'assistant (API 1.1.0) : le MJ décrit une règle en français, l'IA remplit les parcours, l'assistant valide et montre l'aperçu, le MJ clique pour appliquer. Il peut aussi créer ou configurer un Modèle de Contenu (donner une action à une arme, régler ses champs) : le panneau montre les changements et les écrit par l'API stable du configurateur quand le MJ clique sur Appliquer au Contenu. L'IA n'écrit jamais directement dans un Ruleset.
 
 ---
 

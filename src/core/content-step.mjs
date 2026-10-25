@@ -1,7 +1,8 @@
-/* A step Rule Them'All's assistant has no path for: configure a Content Template the Ruleset already has (a weapon
-   "Fusil d'assaut"), giving it Actions and setting its field values. The AI names the template, possibly misspelled,
-   and says what to change; this module finds the template, checks the change against the Ruleset and builds the
-   patch for the stable configurator's updateContentTemplate. Nothing is written here: the GM applies it from the
+/* A step Rule Them'All's assistant has no path for: configure a Content Template (a weapon "Fusil d'assaut"), giving
+   it Actions and setting its field values, or create it first when the Ruleset lacks it. The AI names the template,
+   possibly misspelled, and says what to change; this module finds the template (or its Content Type), checks the
+   change against the Ruleset and builds what the stable configurator's updateContentTemplate or createContentTemplate
+   takes. Nothing is written here: the GM applies it from the
    panel. Pure. */
 
 import { MAX_RETRIES, clarified, parseJsonAnswer } from "./rules-designer.mjs";
@@ -10,8 +11,8 @@ export const CONTENT_PATH_ID = "ai-them-all.configureContent";
 
 /** Shown to the AI with the assistant's paths, in the same shape. */
 export const CONTENT_PATH = Object.freeze({
-  id: CONTENT_PATH_ID, group: "ai-them-all", title: "Configurer un Contenu existant",
-  summary: "Modifie un Modèle de Contenu qui existe déjà dans le Ruleset (un objet, une arme comme « Fusil d'assaut ») : lui donne des actions et règle les valeurs de ses champs. Ne crée aucune entrée ; à placer après les étapes qui créent les actions qu'il donne.",
+  id: CONTENT_PATH_ID, group: "ai-them-all", title: "Créer ou configurer un Modèle de Contenu",
+  summary: "Configure un Modèle de Contenu (un objet, une arme comme « Fusil d'assaut ») : lui donne des actions et règle les valeurs de ses champs ; le crée s'il n'existe pas encore. Son Type de Contenu (ex. Arme, avec ses champs) doit exister ou être créé par une étape contentType précédente ; à placer après les étapes qui créent les actions qu'il donne.",
   keywords: ["contenu", "objet", "arme", "item", "équipement", "configurer", "existant"],
   questions: [
     { id: "template", kind: "entry", accept: { collection: "contentTemplates" } },
@@ -60,14 +61,21 @@ export function findTemplate(templates, wanted) {
   return scored[1]?.d === best.d ? null : best.t;
 }
 
+const slug = text => normalizeName(text).replace(/ /g, "-") || "contenu";
+
 /**
  * Checks the AI's answer {template, grant, fields} against the Ruleset. Resolves the patch for updateContentTemplate
  * and what it changes: {valid: true, templateId, name, patch, grants, fields: [{id, from, to}]} | {valid: false, errors}.
+ * A template the Ruleset lacks is created when the answer says {create: {name, contentType}}: the result then has
+ * create: true and entry, the whole new template, instead of patch.
  */
 export function planContentChange(ruleset, answer) {
   const templates = listContentTemplates(ruleset, Infinity);
   const template = findTemplate(templates, answer?.template);
-  if (!template) return { valid: false, errors: [{ code: "TEMPLATE", detail: `Aucun Modèle de Contenu ne correspond à ${JSON.stringify(answer?.template ?? "")} ; choisis un id de la liste.` }] };
+  if (!template) {
+    if (answer?.create && typeof answer.create === "object") return planContentCreation(ruleset, templates, answer);
+    return { valid: false, errors: [{ code: "TEMPLATE", detail: `Aucun Modèle de Contenu ne correspond à ${JSON.stringify(answer?.template ?? "")} : choisis un id de la liste, ou ajoute "create": {"name", "contentType"} pour le créer.` }] };
+  }
   const errors = [];
   const actions = new Set((ruleset?.actions ?? []).map(a => a.id));
   const grant = Array.isArray(answer?.grant) ? answer.grant.map(String) : [];
@@ -93,18 +101,49 @@ export function planContentChange(ruleset, answer) {
   return { valid: true, templateId: template.id, name: template.name, patch, grants: added, fields: changed.map(([id, to]) => ({ id, from: template.data[id], to })) };
 }
 
-export function buildContentPrompt(description, { goal = "", done = [], templates = [], actions = [], clarifications = [], previous = null } = {}) {
+const checkGrantsAndFields = (ruleset, grant, fields, fieldIds, typeName) => {
+  const actions = new Set((ruleset?.actions ?? []).map(a => a.id));
+  return [
+    ...grant.filter(id => !actions.has(id)).map(id => ({ code: "ACTION", detail: `L'action ${id} n'existe pas dans le Ruleset.` })),
+    ...Object.keys(fields).filter(id => !fieldIds.includes(id)).map(id => ({ code: "FIELD", detail: `Le champ ${id} n'existe pas pour le type ${typeName} (champs : ${fieldIds.join(", ") || "aucun"}).` }))
+  ];
+};
+
+function planContentCreation(ruleset, templates, answer) {
+  const name = String(answer.create.name ?? answer.template ?? "").trim();
+  const types = (ruleset?.contentTypes ?? []).map(type => ({ id: type.id, name: nameOf(type), fields: Object.keys(type.fields ?? {}) }));
+  const type = findTemplate(types, answer.create.contentType);
+  const errors = [];
+  if (!name) errors.push({ code: "NAME", detail: "create a besoin du nom du Modèle." });
+  if (!type) errors.push({ code: "CONTENT_TYPE", detail: `Aucun Type de Contenu ne correspond à ${JSON.stringify(answer.create.contentType ?? "")} (types : ${types.map(t => t.id).join(", ") || "aucun ; une étape contentType doit le créer avant"}).` });
+  if (errors.length) return { valid: false, errors };
+  const grant = Array.isArray(answer.grant) ? [...new Set(answer.grant.map(String))] : [];
+  const fields = answer.fields && typeof answer.fields === "object" && !Array.isArray(answer.fields) ? answer.fields : {};
+  errors.push(...checkGrantsAndFields(ruleset, grant, fields, type.fields, type.name));
+  if (errors.length) return { valid: false, errors };
+  const taken = new Set(templates.map(t => t.id));
+  let id = slug(answer.create.id || name);
+  for (let n = 2, base = id; taken.has(id); n++) id = `${base}-${n}`;
+  const entry = { id, nameKey: name, contentTypeId: type.id, data: { ...fields },
+    relations: grant.map(actionId => ({ id: `grant-${actionId}`, operation: "grant", targetRef: { objectKind: "action", objectId: actionId } })) };
+  return { valid: true, create: true, templateId: id, name, contentType: type.name, entry, grants: grant, fields: Object.entries(fields).map(([fid, to]) => ({ id: fid, from: undefined, to })) };
+}
+
+export function buildContentPrompt(description, { goal = "", done = [], templates = [], contentTypes = [], actions = [], clarifications = [], previous = null } = {}) {
   const lines = [
     `Règle décrite par le MJ :\n${description.trim()}`,
     clarified(clarifications),
     goal && `Étape à remplir maintenant : ${goal}`,
     done.length && `Étapes déjà appliquées et entrées qu'elles ont créées :\n${JSON.stringify(done)}`,
     `Modèles de Contenu du Ruleset (id, nom, type, champs, valeurs, actions déjà données) :\n${JSON.stringify(templates)}`,
+    `Types de Contenu du Ruleset (id, nom, champs) :\n${JSON.stringify(contentTypes)}`,
     `Actions du Ruleset (id, nom) :\n${JSON.stringify(actions)}`,
     "Le MJ peut avoir mal orthographié le nom du Contenu : choisis le Modèle dont le nom est le plus proche et donne son id.",
+    "Si aucun Modèle ne correspond, crée-le : donne son nom dans template et ajoute \"create\": {\"name\": \"<nom>\", \"contentType\": \"<id du Type de Contenu>\"}.",
     "Ne change que ce que la règle demande pour ce Contenu. Les valeurs de champs sont celles de la règle, jamais inventées.",
     "Réponds avec l'un de ces objets :",
     '{"template": "<id du Modèle>", "grant": ["<id d\'action à donner>"], "fields": {"<id de champ>": <valeur>}, "explanation": "<une phrase>"}',
+    '{"template": "<nom>", "create": {"name": "<nom>", "contentType": "<id du Type>"}, "grant": [...], "fields": {...}, "explanation": "<une phrase>"}',
     '{"question": "<la valeur de règle manquante à demander au MJ>"}'
   ].filter(Boolean);
   if (previous) lines.push(`Ta réponse précédente :\n${JSON.stringify(previous.answer)}\n\nElle a été refusée ; corrige-la :\n${JSON.stringify(previous.errors)}`);
@@ -119,12 +158,12 @@ export async function fillContentStep({ description, step, done = [], clarificat
   const ruleset = readRuleset();
   if (!ruleset) return { status: "invalid", errors: [{ code: "RULESET", detail: "Le Ruleset n'a pas pu être lu." }] };
   const templates = listContentTemplates(ruleset);
-  if (!templates.length) return { status: "invalid", errors: [{ code: "TEMPLATE", detail: "Le Ruleset n'a aucun Modèle de Contenu." }] };
+  const contentTypes = (ruleset.contentTypes ?? []).map(type => ({ id: type.id, name: nameOf(type), fields: Object.keys(type.fields ?? {}) }));
   const actions = (ruleset.actions ?? []).map(a => ({ id: a.id, name: nameOf(a) }));
   let previous = null;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     onAttempt(attempt);
-    const answer = parseJsonAnswer(await generate(buildContentPrompt(description, { goal: step.goal, done, templates, actions, clarifications, previous })));
+    const answer = parseJsonAnswer(await generate(buildContentPrompt(description, { goal: step.goal, done, templates, contentTypes, actions, clarifications, previous })));
     if (answer?.question) return { status: "question", question: String(answer.question) };
     const change = answer ? planContentChange(ruleset, answer) : { valid: false, errors: [{ code: "FORMAT", detail: "La réponse n'était pas un objet JSON." }] };
     if (change.valid) return { status: "planned", pathId: CONTENT_PATH_ID, change, explanation: String(answer.explanation ?? step.goal ?? "") };

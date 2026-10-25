@@ -119,7 +119,7 @@ export function renderRulesPanel(element, assistant) {
   async function prepareContent(index) {
     const step = run.steps[index];
     const onward = onwardButtons(index);
-    if (!game.ruleThemAll?.configurator?.updateContentTemplate) {
+    if (!game.ruleThemAll?.configurator?.updateContentTemplate || !game.ruleThemAll.configurator.createContentTemplate) {
       show(esc(t("Designer.ContentUnavailable")), "error");
       return drawNext(onward);
     }
@@ -135,7 +135,7 @@ export function renderRulesPanel(element, assistant) {
     run.last = result;
     const { change } = result;
     const actionName = id => (readRuleset()?.actions ?? []).find(a => a.id === id)?.nameKey || id;
-    const lines = [...change.grants.map(id => t("Designer.ContentGrant", { action: actionName(id) })),
+    const lines = [...(change.create ? [t("Designer.ContentCreate", { name: change.name, type: change.contentType })] : []), ...change.grants.map(id => t("Designer.ContentGrant", { action: actionName(id) })),
       ...change.fields.map(f => t("Designer.ContentField", { field: f.id, from: shown(f.from), to: shown(f.to) }))];
     status.innerHTML = `<p class="ata-status">${esc(result.explanation)} ${esc(t("Designer.ContentReview", { name: change.name }))}</p>
       <ul class="ata-content-change">${lines.map(line => `<li>${esc(line)}</li>`).join("")}</ul>`;
@@ -146,7 +146,9 @@ export function renderRulesPanel(element, assistant) {
     const { change } = run.last ?? {};
     if (!change || assistant.state()?.readOnly) return;
     try {
-      await game.ruleThemAll.configurator.updateContentTemplate(assistant.versionId, change.templateId, change.patch);
+      const { configurator } = game.ruleThemAll;
+      if (change.create) await configurator.createContentTemplate(assistant.versionId, change.entry);
+      else await configurator.updateContentTemplate(assistant.versionId, change.templateId, change.patch);
     } catch (error) {
       return show(`${esc(t("Designer.ContentFailed"))} ${esc(errorMessage(error))}`, "error");
     }
@@ -193,7 +195,8 @@ export function renderRulesPanel(element, assistant) {
   async function advance(skipped) {
     const step = run.steps[run.index];
     if (skipped) step.skipped = true;
-    else if (step.pathId === CONTENT_PATH_ID) run.done.push({ pathId: step.pathId, goal: step.goal, created: [], configured: run.last?.applied ? [{ collection: "contentTemplates", id: run.last.change.templateId }] : [] });
+    else if (step.pathId === CONTENT_PATH_ID) run.done.push({ pathId: step.pathId, goal: step.goal, created: run.last?.applied && run.last.change.create ? [{ collection: "contentTemplates", id: run.last.change.templateId }] : [],
+      configured: run.last?.applied && !run.last.change.create ? [{ collection: "contentTemplates", id: run.last.change.templateId }] : [] });
     else run.done.push({ pathId: step.pathId, goal: step.goal, created: run.last?.plan?.created ?? [] });
     await prepare(run.index + 1);
   }
