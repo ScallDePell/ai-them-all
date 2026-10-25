@@ -1,6 +1,6 @@
 # Changelog
 
-## Non publié
+## 0.1.1
 
 - Fenêtre « Fournisseur d'IA » (Paramètres du module → Configurer) : fournisseur, adresse, clé API, bouton **Tester la connexion**.
 - Après un test réussi, les modèles texte et image se choisissent dans des listes remplies par le service (Claude, API compatible OpenAI, Ollama).
