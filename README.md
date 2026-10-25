@@ -18,6 +18,11 @@ AI Them'All (ATA) fonctionne **seul**, sur n'importe quel système de jeu. Lorsq
 - **Galerie de sélection** : agrandir, comparer à l'original, relancer, modifier les instructions, annuler. La cible n'est modifiée **qu'après validation explicite**.
 - Conservation de la référence de l'original et journal d'opération minimal.
 
+### Concepteur de règles (nouvelle fonction)
+- Le MJ décrit une règle en français ; l'IA la traduit en **réponses aux parcours de l'assistant de Rule Them'All**, que l'assistant valide et prévisualise.
+- **Rien n'est écrit sans l'aperçu et le clic du MJ** : passage obligé par `planAssistant` puis `applyAssistant` de l'API stable de RTA.
+- Disponible uniquement quand Rule Them'All (API ≥ 1.1.0) est actif. Plan détaillé : [docs/CONSIGNES.md](docs/CONSIGNES.md).
+
 ### Cards de génération
 Chaque type de génération est une **card** configurable et réutilisable (aucune n'est codée en dur ; exemples : *Image PJ*, *Description PJ*, *Image PNJ*, *Image Objet*, *Image Pouvoir*, *Description Pouvoir*). Une card regroupe :
 
@@ -147,6 +152,8 @@ ATA ne déclare **aucune dépendance** à RTA dans son `module.json`.
 | ATA-2 | Cards, cibles/sources et recettes, intégration au configurateur RTA, icônes sur les feuilles |
 | ATA-3 | Images de référence/inspiration/fond, résolution et variantes, galerie et sauvegarde validée |
 | ATA-4 | Adaptateurs pour systèmes tiers, profils avancés, historique, robustesse |
+| RTA-2 | *(côté Rule Them'All)* Assistant dans l'API stable, hook de la fenêtre de l'assistant, description des parcours pour une machine (API 1.1.0) |
+| ATA-R | **Concepteur de règles**, versions 0.1.0 à 0.5.0 puis recette : voir la [feuille de route de docs/CONSIGNES.md](docs/CONSIGNES.md#feuille-de-route-et-questions-ouvertes) |
 
 ## Compatibilité
 - Foundry VTT **v14** (ApplicationV2, menus de paramètres, FilePicker), à vérifier en exécution.
